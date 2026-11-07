@@ -16,7 +16,6 @@ permissions:
   contents: read
 
 env:
-  # Pinned Flutter version — matches .metadata and pubspec.yaml sdk constraint.
   FLUTTER_VERSION: "3.47.9"
   JAVA_VERSION: "17"
   NDK_VERSION: "28.2.13676358"
@@ -66,62 +65,19 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # Inject google-services.json for Firebase Android SDK.
-      # Store the file contents as a GitHub Secret named GOOGLE_SERVICES_JSON
-      # (plain JSON text, not base64). If the secret is absent the step is
-      # skipped and the app falls back to offline-only mode.
-      - name: Inject google-services.json
-        if: ${{ secrets.GOOGLE_SERVICES_JSON != '' }}
+      # Inject real google-services.json from GitHub Secret if available,
+      # otherwise the stub committed in the repo is used (offline-only build).
+      - name: Inject google-services.json from secret
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         shell: bash
         run: |
-          echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
-          echo "google-services.json written ($(wc -c < android/app/google-services.json) bytes)"
-
-      # If no secret is set, write a minimal stub so the google-services
-      # Gradle plugin can parse the file without crashing the build.
-      - name: Write stub google-services.json (no secret)
-        if: ${{ secrets.GOOGLE_SERVICES_JSON == '' }}
-        shell: bash
-        run: |
-          cat > android/app/google-services.json <<'EOF'
-          {
-            "project_info": {
-              "project_number": "800582767727",
-              "project_id": "inventory-management-be3d1",
-              "storage_bucket": "inventory-management-be3d1.firebasestorage.app"
-            },
-            "client": [
-              {
-                "client_info": {
-                  "mobilesdk_app_id": "1:800582767727:android:000000000000000000000000",
-                  "android_client_info": {
-                    "package_name": "com.vijaybalaji.buildstock"
-                  }
-                },
-                "oauth_client": [],
-                "api_key": [
-                  {
-                    "current_key": "AIzaSyCaKEwCnlUYS9K1j-PgFYVrDUU69MLCIV4"
-                  }
-                ],
-                "services": {
-                  "appinvite_service": {
-                    "other_platform_oauth_client": []
-                  }
-                }
-              }
-            ],
-            "configuration_version": "1"
-          }
-          EOF
-          echo "Stub google-services.json written."
-
-      # The Drift code (lib/core/database/app_database.g.dart) and the
-      # localization code (lib/l10n/generated) are committed, so the build does
-      # not depend on build_runner. Regenerate locally with:
-      #   dart run build_runner build --delete-conflicting-outputs
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+            echo "Real google-services.json injected from secret."
+          else
+            echo "No GOOGLE_SERVICES_JSON secret found; using stub from repo (Firebase offline mode)."
+          fi
 
       - name: Build release APK
         run: >
@@ -147,8 +103,6 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-  # Quality checks run in their own job so that an analyzer note or a flaky
-  # test can never prevent the APK from being produced.
   quality:
     name: Analyze and test
     runs-on: ubuntu-latest
