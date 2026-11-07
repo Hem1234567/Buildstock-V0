@@ -18,7 +18,8 @@ permissions:
 env:
   FLUTTER_VERSION: "3.47.9"
   JAVA_VERSION: "17"
-  # NDK r27c - pre-installed on ubuntu-latest GitHub Actions runner
+  # NDK r27c — pre-installed on ubuntu-latest; pinned here to avoid
+  # Gradle downloading a different version at build time.
   NDK_VERSION: "27.3.13750724"
 
 jobs:
@@ -26,45 +27,72 @@ jobs:
     name: Build release APK
     runs-on: ubuntu-latest
     timeout-minutes: 60
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
 
-      - name: Verify Android SDK and NDK
+      # ── Android SDK / NDK / CMake ──────────────────────────────────────────
+      - name: Install CMake and accept SDK licenses
         shell: bash
         run: |
           SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
-          echo "SDK root: $SDK_ROOT"
-          echo "=== Installed NDK versions ==="
-          ls "$SDK_ROOT/ndk/" 2>/dev/null || echo "No ndk/ directory"
-          echo "=== ANDROID_NDK_HOME ==="
-          echo "${ANDROID_NDK_HOME:-not set}"
-          echo "=== Installed build-tools ==="
-          ls "$SDK_ROOT/build-tools/" 2>/dev/null | tail -5 || echo "No build-tools"
-          echo "=== Installed platforms ==="
-          ls "$SDK_ROOT/platforms/" 2>/dev/null || echo "No platforms"
+          echo "SDK_ROOT=$SDK_ROOT"
 
-      - name: Accept SDK licenses
-        shell: bash
-        run: |
-          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
-          SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
-          if [ ! -x "$SDKMANAGER" ]; then
-            SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -n 1 || true)"
-          fi
+          # Locate sdkmanager
+          SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager 2>/dev/null | sort -V | tail -1 || true)"
           if [ -z "$SDKMANAGER" ] || [ ! -x "$SDKMANAGER" ]; then
-            echo "sdkmanager not found - skipping license acceptance"
+            echo "::warning::sdkmanager not found — Gradle will manage SDK components itself."
             exit 0
           fi
-          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
-          echo "Licenses accepted."
+          echo "sdkmanager: $SDKMANAGER"
 
+          # Accept licenses silently
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+
+          # Install CMake (required by the jni / path_provider_android packages)
+          "$SDKMANAGER" "cmake;3.22.1" > /dev/null 2>&1 || \
+          "$SDKMANAGER" "cmake;3.18.1" > /dev/null 2>&1 || \
+          echo "::warning::CMake install via sdkmanager failed — will use system cmake if available."
+
+          # Ensure the pre-installed NDK is recognised
+          if [ -d "$SDK_ROOT/ndk/$NDK_VERSION" ]; then
+            echo "NDK $NDK_VERSION already present."
+          else
+            "$SDKMANAGER" "ndk;$NDK_VERSION" > /dev/null 2>&1 || \
+              echo "::warning::NDK $NDK_VERSION not installed — Gradle will attempt to download it."
+          fi
+
+          # Expose NDK path for Gradle
+          echo "ANDROID_NDK_HOME=$SDK_ROOT/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+
+      - name: Show Android SDK environment
+        shell: bash
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo ""
+          echo "=== Installed NDKs ==="
+          ls "$SDK_ROOT/ndk/" 2>/dev/null || echo "none"
+          echo ""
+          echo "=== CMake versions ==="
+          ls "$SDK_ROOT/cmake/" 2>/dev/null || echo "none"
+          echo ""
+          echo "=== Installed Platforms ==="
+          ls "$SDK_ROOT/platforms/" 2>/dev/null || echo "none"
+          echo ""
+          echo "=== build-tools ==="
+          ls "$SDK_ROOT/build-tools/" 2>/dev/null | tail -5 || echo "none"
+
+      # ── Flutter ────────────────────────────────────────────────────────────
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -72,14 +100,16 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Flutter version
+      - name: Flutter version info
         run: flutter --version
 
-      - name: Install dependencies
+      - name: Get dependencies
         run: flutter pub get
 
+      # ── Firebase (optional) ────────────────────────────────────────────────
       # This app initialises Firebase manually via FirebaseOptions (firebase_runtime.dart),
       # so google-services.json and the google-services Gradle plugin are NOT required.
+      # The GOOGLE_SERVICES_JSON secret is optional; builds without it still work.
       - name: Inject google-services.json (optional)
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
@@ -87,39 +117,35 @@ jobs:
         run: |
           if [ -n "$GOOGLE_SERVICES_JSON" ]; then
             echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
-            echo "google-services.json written from secret."
+            echo "Wrote google-services.json from secret."
           else
-            echo "No GOOGLE_SERVICES_JSON secret - skipping (not required for this build)."
+            echo "No GOOGLE_SERVICES_JSON secret — skipping (not needed; app uses manual FirebaseOptions)."
           fi
 
-      - name: Flutter clean
-        run: flutter clean
-
-      - name: Reinstall dependencies after clean
-        run: flutter pub get
-
+      # ── Build ──────────────────────────────────────────────────────────────
       - name: Build release APK
         shell: bash
         run: |
-          set -o pipefail
-          flutter build apk --release --no-tree-shake-icons \
-            --dart-define=FIREBASE_ANDROID_APP_ID=${{ vars.FIREBASE_ANDROID_APP_ID }} \
-            2>&1 | tee /tmp/flutter_build.log
-          BUILD_EXIT=${PIPESTATUS[0]}
-          echo "--- Build exit code: $BUILD_EXIT ---"
+          # Run flutter build, capturing all output to a log file.
+          # We avoid set -o pipefail + tee to prevent false negatives.
+          flutter build apk --release --no-tree-shake-icons --verbose \
+            > /tmp/build_full.log 2>&1
+          BUILD_EXIT=$?
+          cat /tmp/build_full.log
           if [ $BUILD_EXIT -ne 0 ]; then
-            echo "=== LAST 200 LINES OF BUILD LOG ==="
-            tail -200 /tmp/flutter_build.log
+            echo ""
+            echo "===== BUILD FAILED (exit $BUILD_EXIT) — last 300 lines ====="
+            tail -300 /tmp/build_full.log
+            exit $BUILD_EXIT
           fi
-          exit $BUILD_EXIT
 
-      - name: Upload build log (always)
+      - name: Upload full build log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-log
-          path: /tmp/flutter_build.log
-          retention-days: 5
+          path: /tmp/build_full.log
+          retention-days: 7
 
       - name: Name the APK
         id: apk
@@ -127,19 +153,21 @@ jobs:
         run: |
           VERSION="$(grep -E '^version:' pubspec.yaml | head -n 1 | awk '{print $2}' | cut -d+ -f1)"
           NAME="BuildStock-v${VERSION}-build${GITHUB_RUN_NUMBER}.apk"
-          cp build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/${NAME}"
-          echo "name=${NAME}" >> "$GITHUB_OUTPUT"
-          echo "path=build/app/outputs/flutter-apk/${NAME}" >> "$GITHUB_OUTPUT"
+          cp build/app/outputs/flutter-apk/app-release.apk \
+             "build/app/outputs/flutter-apk/${NAME}"
+          echo "apk_name=${NAME}" >> "$GITHUB_OUTPUT"
+          echo "apk_path=build/app/outputs/flutter-apk/${NAME}" >> "$GITHUB_OUTPUT"
           ls -lh build/app/outputs/flutter-apk/
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: buildstock-apk
-          path: ${{ steps.apk.outputs.path }}
+          path: ${{ steps.apk.outputs.apk_path }}
           if-no-files-found: error
           retention-days: 30
 
+  # ── Code quality (non-blocking) ──────────────────────────────────────────
   quality:
     name: Analyze and test
     runs-on: ubuntu-latest
@@ -156,7 +184,7 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Install dependencies
+      - name: Get dependencies
         run: flutter pub get
 
       - name: Analyze

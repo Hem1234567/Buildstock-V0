@@ -19,7 +19,7 @@ permissions:
 env:
   FLUTTER_VERSION: "3.47.9"
   JAVA_VERSION: "17"
-  NDK_VERSION: "28.2.13676358"
+  NDK_VERSION: "27.3.13750724"
 
 jobs:
   release:
@@ -31,25 +31,29 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
 
-      - name: Prepare Android SDK
+      - name: Install CMake and prepare Android SDK
         shell: bash
         run: |
           SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
-          SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
-          if [ ! -x "$SDKMANAGER" ]; then
-            SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -n 1 || true)"
-          fi
+          SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager 2>/dev/null | sort -V | tail -1 || true)"
           if [ -z "$SDKMANAGER" ] || [ ! -x "$SDKMANAGER" ]; then
             echo "::warning::sdkmanager not found; Gradle will download SDK components itself."
             exit 0
           fi
           yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
-          "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;${NDK_VERSION}" || true
+          "$SDKMANAGER" "cmake;3.22.1" > /dev/null 2>&1 || \
+          "$SDKMANAGER" "cmake;3.18.1" > /dev/null 2>&1 || \
+          echo "::warning::CMake install failed — will use system cmake."
+          if [ ! -d "$SDK_ROOT/ndk/$NDK_VERSION" ]; then
+            "$SDKMANAGER" "ndk;$NDK_VERSION" > /dev/null 2>&1 || \
+              echo "::warning::NDK $NDK_VERSION not installed."
+          fi
+          echo "ANDROID_NDK_HOME=$SDK_ROOT/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -92,9 +96,19 @@ jobs:
           fi
 
       - name: Build release APK
-        run: >
-          flutter build apk --release --no-tree-shake-icons
-          --dart-define=FIREBASE_ANDROID_APP_ID=${{ vars.FIREBASE_ANDROID_APP_ID }}
+        shell: bash
+        run: |
+          flutter build apk --release --no-tree-shake-icons \
+            --dart-define=FIREBASE_ANDROID_APP_ID=${{ vars.FIREBASE_ANDROID_APP_ID }} \
+            > /tmp/release_build.log 2>&1
+          BUILD_EXIT=$?
+          cat /tmp/release_build.log
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo ""
+            echo "===== BUILD FAILED ====="
+            tail -300 /tmp/release_build.log
+            exit $BUILD_EXIT
+          fi
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
