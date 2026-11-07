@@ -42,8 +42,8 @@ android {
 
     defaultConfig {
         applicationId = "com.vijaybalaji.buildstock"
-        // Android 8.0+. Drift, Firebase and the printing stack all support it.
-        minSdk = flutter.minSdkVersion
+        // firebase_core 5.x and mobile_scanner 7.x both require minSdk 23.
+        minSdk = maxOf(flutter.minSdkVersion, 23)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

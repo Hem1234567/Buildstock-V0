@@ -81,7 +81,7 @@ jobs:
 
       - name: Build release APK
         run: >
-          flutter build apk --release --no-tree-shake-icons
+          flutter build apk --release --no-tree-shake-icons --verbose
           --dart-define=FIREBASE_ANDROID_APP_ID=${{ vars.FIREBASE_ANDROID_APP_ID }}
 
       - name: Name the APK
