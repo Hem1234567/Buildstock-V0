@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
@@ -61,6 +61,52 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Inject google-services.json
+        if: ${{ secrets.GOOGLE_SERVICES_JSON != '' }}
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        shell: bash
+        run: |
+          echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          echo "google-services.json written."
+
+      - name: Write stub google-services.json (no secret)
+        if: ${{ secrets.GOOGLE_SERVICES_JSON == '' }}
+        shell: bash
+        run: |
+          cat > android/app/google-services.json <<'EOF'
+          {
+            "project_info": {
+              "project_number": "800582767727",
+              "project_id": "inventory-management-be3d1",
+              "storage_bucket": "inventory-management-be3d1.firebasestorage.app"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:800582767727:android:000000000000000000000000",
+                  "android_client_info": {
+                    "package_name": "com.vijaybalaji.buildstock"
+                  }
+                },
+                "oauth_client": [],
+                "api_key": [
+                  {
+                    "current_key": "AIzaSyCaKEwCnlUYS9K1j-PgFYVrDUU69MLCIV4"
+                  }
+                ],
+                "services": {
+                  "appinvite_service": {
+                    "other_platform_oauth_client": []
+                  }
+                }
+              }
+            ],
+            "configuration_version": "1"
+          }
+          EOF
+          echo "Stub google-services.json written."
 
       - name: Configure optional release signing
         env:

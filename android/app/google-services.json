@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "800582767727",
+    "project_id": "inventory-management-be3d1",
+    "storage_bucket": "inventory-management-be3d1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:800582767727:android:000000000000000000000000",
+        "android_client_info": {
+          "package_name": "com.vijaybalaji.buildstock"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCaKEwCnlUYS9K1j-PgFYVrDUU69MLCIV4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
