@@ -20,8 +20,8 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.vijaybalaji.buildstock"
-    compileSdk = maxOf(flutter.compileSdkVersion, 36)
-    ndkVersion = "28.2.13676358"
+    compileSdk = 35
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true

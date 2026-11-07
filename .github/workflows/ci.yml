@@ -18,7 +18,7 @@ permissions:
 env:
   FLUTTER_VERSION: "3.47.9"
   JAVA_VERSION: "17"
-  NDK_VERSION: "28.2.13676358"
+  NDK_VERSION: "27.0.12077973"
 
 jobs:
   build-apk:
@@ -64,12 +64,14 @@ jobs:
       - name: Flutter version
         run: flutter --version
 
+      - name: Enable Flutter Native Assets
+        run: flutter config --enable-native-assets
+
       - name: Install dependencies
         run: flutter pub get
 
       # This app initialises Firebase manually via FirebaseOptions (firebase_runtime.dart),
       # so google-services.json and the google-services Gradle plugin are NOT required.
-      # If a secret is provided it is written anyway for future compatibility.
       - name: Inject google-services.json (optional)
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
@@ -82,6 +84,12 @@ jobs:
             echo "No GOOGLE_SERVICES_JSON secret - skipping (not required for this build)."
           fi
 
+      - name: Flutter clean
+        run: flutter clean
+
+      - name: Reinstall dependencies after clean
+        run: flutter pub get
+
       - name: Build release APK
         shell: bash
         run: |
@@ -91,8 +99,8 @@ jobs:
           BUILD_EXIT=${PIPESTATUS[0]}
           echo "--- Build exit code: $BUILD_EXIT ---"
           if [ $BUILD_EXIT -ne 0 ]; then
-            echo "=== LAST 100 LINES OF BUILD LOG ==="
-            tail -100 /tmp/flutter_build.log
+            echo "=== LAST 150 LINES OF BUILD LOG ==="
+            tail -150 /tmp/flutter_build.log
           fi
           exit $BUILD_EXIT
 
@@ -138,6 +146,9 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+
+      - name: Enable Flutter Native Assets
+        run: flutter config --enable-native-assets
 
       - name: Install dependencies
         run: flutter pub get
