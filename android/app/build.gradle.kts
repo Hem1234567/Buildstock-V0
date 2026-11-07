@@ -21,7 +21,8 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "com.vijaybalaji.buildstock"
     compileSdk = 35
-    ndkVersion = "27.0.12077973"
+    // NDK r27c - pre-installed on GitHub Actions ubuntu-latest runner
+    ndkVersion = "27.3.13750724"
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true

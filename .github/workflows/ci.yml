@@ -18,7 +18,8 @@ permissions:
 env:
   FLUTTER_VERSION: "3.47.9"
   JAVA_VERSION: "17"
-  NDK_VERSION: "27.0.12077973"
+  # NDK r27c - pre-installed on ubuntu-latest GitHub Actions runner
+  NDK_VERSION: "27.3.13750724"
 
 jobs:
   build-apk:
@@ -35,7 +36,21 @@ jobs:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
 
-      - name: Prepare Android SDK
+      - name: Verify Android SDK and NDK
+        shell: bash
+        run: |
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "SDK root: $SDK_ROOT"
+          echo "=== Installed NDK versions ==="
+          ls "$SDK_ROOT/ndk/" 2>/dev/null || echo "No ndk/ directory"
+          echo "=== ANDROID_NDK_HOME ==="
+          echo "${ANDROID_NDK_HOME:-not set}"
+          echo "=== Installed build-tools ==="
+          ls "$SDK_ROOT/build-tools/" 2>/dev/null | tail -5 || echo "No build-tools"
+          echo "=== Installed platforms ==="
+          ls "$SDK_ROOT/platforms/" 2>/dev/null || echo "No platforms"
+
+      - name: Accept SDK licenses
         shell: bash
         run: |
           SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
@@ -44,15 +59,11 @@ jobs:
             SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -n 1 || true)"
           fi
           if [ -z "$SDKMANAGER" ] || [ ! -x "$SDKMANAGER" ]; then
-            echo "::warning::sdkmanager not found; Gradle will download SDK components itself."
+            echo "sdkmanager not found - skipping license acceptance"
             exit 0
           fi
-          echo "Using sdkmanager: $SDKMANAGER"
           yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
-          "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;${NDK_VERSION}" \
-            || echo "::warning::sdkmanager install failed; Gradle will try to auto-download."
-          echo "NDK install check:"
-          ls "$SDK_ROOT/ndk/" 2>/dev/null || echo "No NDK directory found"
+          echo "Licenses accepted."
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -63,9 +74,6 @@ jobs:
 
       - name: Flutter version
         run: flutter --version
-
-      - name: Enable Flutter Native Assets
-        run: flutter config --enable-native-assets
 
       - name: Install dependencies
         run: flutter pub get
@@ -93,14 +101,15 @@ jobs:
       - name: Build release APK
         shell: bash
         run: |
+          set -o pipefail
           flutter build apk --release --no-tree-shake-icons \
             --dart-define=FIREBASE_ANDROID_APP_ID=${{ vars.FIREBASE_ANDROID_APP_ID }} \
             2>&1 | tee /tmp/flutter_build.log
           BUILD_EXIT=${PIPESTATUS[0]}
           echo "--- Build exit code: $BUILD_EXIT ---"
           if [ $BUILD_EXIT -ne 0 ]; then
-            echo "=== LAST 150 LINES OF BUILD LOG ==="
-            tail -150 /tmp/flutter_build.log
+            echo "=== LAST 200 LINES OF BUILD LOG ==="
+            tail -200 /tmp/flutter_build.log
           fi
           exit $BUILD_EXIT
 
@@ -146,9 +155,6 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
-
-      - name: Enable Flutter Native Assets
-        run: flutter config --enable-native-assets
 
       - name: Install dependencies
         run: flutter pub get
