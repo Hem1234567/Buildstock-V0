@@ -7,8 +7,9 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
-    // Google Services plugin – required by firebase_core, firebase_auth, cloud_firestore.
-    id("com.google.gms.google-services")
+    // NOTE: com.google.gms.google-services is NOT applied here because this app
+    // initialises Firebase manually via FirebaseOptions (see firebase_runtime.dart).
+    // A google-services.json is therefore not required at build time.
 }
 
 val keystorePropertiesFile = rootProject.file("key.properties")
@@ -27,7 +28,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
 
     signingConfigs {
         if (keystorePropertiesFile.exists()) {
@@ -51,8 +51,7 @@ android {
 
     buildTypes {
         release {
-            // A production release must supply android/key.properties. Without
-            // it the build stays installable for testing but is not publishable.
+            // Without key.properties, debug signing is used (not publishable but installable).
             signingConfig = if (keystorePropertiesFile.exists()) {
                 signingConfigs.getByName("release")
             } else {
@@ -77,4 +76,3 @@ flutter {
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }
-

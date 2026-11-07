@@ -51,6 +51,8 @@ jobs:
           yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
           "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;${NDK_VERSION}" \
             || echo "::warning::sdkmanager install failed; Gradle will try to auto-download."
+          echo "NDK install check:"
+          ls "$SDK_ROOT/ndk/" 2>/dev/null || echo "No NDK directory found"
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -65,24 +67,42 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # Inject real google-services.json from GitHub Secret if available,
-      # otherwise the stub committed in the repo is used (offline-only build).
-      - name: Inject google-services.json from secret
+      # This app initialises Firebase manually via FirebaseOptions (firebase_runtime.dart),
+      # so google-services.json and the google-services Gradle plugin are NOT required.
+      # If a secret is provided it is written anyway for future compatibility.
+      - name: Inject google-services.json (optional)
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         shell: bash
         run: |
           if [ -n "$GOOGLE_SERVICES_JSON" ]; then
             echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
-            echo "Real google-services.json injected from secret."
+            echo "google-services.json written from secret."
           else
-            echo "No GOOGLE_SERVICES_JSON secret found; using stub from repo (Firebase offline mode)."
+            echo "No GOOGLE_SERVICES_JSON secret - skipping (not required for this build)."
           fi
 
       - name: Build release APK
-        run: >
-          flutter build apk --release --no-tree-shake-icons --verbose
-          --dart-define=FIREBASE_ANDROID_APP_ID=${{ vars.FIREBASE_ANDROID_APP_ID }}
+        shell: bash
+        run: |
+          flutter build apk --release --no-tree-shake-icons \
+            --dart-define=FIREBASE_ANDROID_APP_ID=${{ vars.FIREBASE_ANDROID_APP_ID }} \
+            2>&1 | tee /tmp/flutter_build.log
+          BUILD_EXIT=${PIPESTATUS[0]}
+          echo "--- Build exit code: $BUILD_EXIT ---"
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "=== LAST 100 LINES OF BUILD LOG ==="
+            tail -100 /tmp/flutter_build.log
+          fi
+          exit $BUILD_EXIT
+
+      - name: Upload build log (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: /tmp/flutter_build.log
+          retention-days: 5
 
       - name: Name the APK
         id: apk

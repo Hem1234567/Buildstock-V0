@@ -1,7 +1,6 @@
 name: Release
 
-# Publishes a GitHub release with the APK when a `v*` tag is pushed, or when
-# run manually with a version tag.
+# Publishes a GitHub release with the APK when a `v*` tag is pushed.
 
 on:
   push:
@@ -62,16 +61,14 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Inject google-services.json from secret
+      - name: Inject google-services.json (optional)
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         shell: bash
         run: |
           if [ -n "$GOOGLE_SERVICES_JSON" ]; then
             echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
-            echo "Real google-services.json injected from secret."
-          else
-            echo "No GOOGLE_SERVICES_JSON secret found; using stub from repo."
+            echo "google-services.json written from secret."
           fi
 
       - name: Configure optional release signing
