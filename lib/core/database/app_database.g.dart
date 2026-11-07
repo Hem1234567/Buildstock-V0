@@ -40836,34 +40836,32 @@ typedef $$BusinessProfilesTableProcessedTableManager =
       BusinessProfileRow,
       PrefetchHooks Function()
     >;
-typedef $$UsersTableCreateCompanionBuilder =
-    UsersCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String displayName,
-      Value<String> email,
-      Value<String> phone,
-      Value<String> role,
-      Value<String> permissionsJson,
-      Value<bool> active,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> rowid,
-    });
-typedef $$UsersTableUpdateCompanionBuilder =
-    UsersCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> displayName,
-      Value<String> email,
-      Value<String> phone,
-      Value<String> role,
-      Value<String> permissionsJson,
-      Value<bool> active,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> rowid,
-    });
+typedef $$UsersTableCreateCompanionBuilder = UsersCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String displayName,
+  Value<String> email,
+  Value<String> phone,
+  Value<String> role,
+  Value<String> permissionsJson,
+  Value<bool> active,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> rowid,
+});
+typedef $$UsersTableUpdateCompanionBuilder = UsersCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> displayName,
+  Value<String> email,
+  Value<String> phone,
+  Value<String> role,
+  Value<String> permissionsJson,
+  Value<bool> active,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
 
 class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
   $$UsersTableFilterComposer({
@@ -41137,32 +41135,30 @@ typedef $$UsersTableProcessedTableManager =
       UserRow,
       PrefetchHooks Function()
     >;
-typedef $$DevicesTableCreateCompanionBuilder =
-    DevicesCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String name,
-      Value<String> platform,
-      Value<String> appVersion,
-      Value<String> deviceCode,
-      required DateTime registeredAt,
-      required DateTime lastSeenAt,
-      Value<bool> active,
-      Value<int> rowid,
-    });
-typedef $$DevicesTableUpdateCompanionBuilder =
-    DevicesCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> name,
-      Value<String> platform,
-      Value<String> appVersion,
-      Value<String> deviceCode,
-      Value<DateTime> registeredAt,
-      Value<DateTime> lastSeenAt,
-      Value<bool> active,
-      Value<int> rowid,
-    });
+typedef $$DevicesTableCreateCompanionBuilder = DevicesCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String name,
+  Value<String> platform,
+  Value<String> appVersion,
+  Value<String> deviceCode,
+  required DateTime registeredAt,
+  required DateTime lastSeenAt,
+  Value<bool> active,
+  Value<int> rowid,
+});
+typedef $$DevicesTableUpdateCompanionBuilder = DevicesCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> name,
+  Value<String> platform,
+  Value<String> appVersion,
+  Value<String> deviceCode,
+  Value<DateTime> registeredAt,
+  Value<DateTime> lastSeenAt,
+  Value<bool> active,
+  Value<int> rowid,
+});
 
 class $$DevicesTableFilterComposer
     extends Composer<_$AppDatabase, $DevicesTable> {
@@ -41595,58 +41591,56 @@ typedef $$AppSettingsTableProcessedTableManager =
       AppSettingRow,
       PrefetchHooks Function()
     >;
-typedef $$StoresTableCreateCompanionBuilder =
-    StoresCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String name,
-      required String code,
-      Value<String?> managerId,
-      Value<String> phone,
-      Value<String> altPhone,
-      Value<String> email,
-      Value<String> address,
-      Value<String> city,
-      Value<String> state,
-      Value<String> pinCode,
-      Value<DateTime?> openingDate,
-      Value<String> status,
-      Value<String> notes,
-      Value<bool> archived,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<String?> lastOperationId,
-      Value<int> rowid,
-    });
-typedef $$StoresTableUpdateCompanionBuilder =
-    StoresCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> name,
-      Value<String> code,
-      Value<String?> managerId,
-      Value<String> phone,
-      Value<String> altPhone,
-      Value<String> email,
-      Value<String> address,
-      Value<String> city,
-      Value<String> state,
-      Value<String> pinCode,
-      Value<DateTime?> openingDate,
-      Value<String> status,
-      Value<String> notes,
-      Value<bool> archived,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<String?> lastOperationId,
-      Value<int> rowid,
-    });
+typedef $$StoresTableCreateCompanionBuilder = StoresCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String name,
+  required String code,
+  Value<String?> managerId,
+  Value<String> phone,
+  Value<String> altPhone,
+  Value<String> email,
+  Value<String> address,
+  Value<String> city,
+  Value<String> state,
+  Value<String> pinCode,
+  Value<DateTime?> openingDate,
+  Value<String> status,
+  Value<String> notes,
+  Value<bool> archived,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<String?> lastOperationId,
+  Value<int> rowid,
+});
+typedef $$StoresTableUpdateCompanionBuilder = StoresCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> name,
+  Value<String> code,
+  Value<String?> managerId,
+  Value<String> phone,
+  Value<String> altPhone,
+  Value<String> email,
+  Value<String> address,
+  Value<String> city,
+  Value<String> state,
+  Value<String> pinCode,
+  Value<DateTime?> openingDate,
+  Value<String> status,
+  Value<String> notes,
+  Value<bool> archived,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<String?> lastOperationId,
+  Value<int> rowid,
+});
 
 final class $$StoresTableReferences
     extends BaseReferences<_$AppDatabase, $StoresTable, StoreRow> {
@@ -42223,48 +42217,46 @@ typedef $$StoresTableProcessedTableManager =
       StoreRow,
       PrefetchHooks Function({bool godownsRefs})
     >;
-typedef $$GodownsTableCreateCompanionBuilder =
-    GodownsCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String storeId,
-      required String name,
-      required String code,
-      Value<String> address,
-      Value<String> contactPerson,
-      Value<String> phone,
-      Value<String> capacity,
-      Value<String> status,
-      Value<String> notes,
-      Value<bool> archived,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
-typedef $$GodownsTableUpdateCompanionBuilder =
-    GodownsCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> storeId,
-      Value<String> name,
-      Value<String> code,
-      Value<String> address,
-      Value<String> contactPerson,
-      Value<String> phone,
-      Value<String> capacity,
-      Value<String> status,
-      Value<String> notes,
-      Value<bool> archived,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
+typedef $$GodownsTableCreateCompanionBuilder = GodownsCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String storeId,
+  required String name,
+  required String code,
+  Value<String> address,
+  Value<String> contactPerson,
+  Value<String> phone,
+  Value<String> capacity,
+  Value<String> status,
+  Value<String> notes,
+  Value<bool> archived,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+typedef $$GodownsTableUpdateCompanionBuilder = GodownsCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> storeId,
+  Value<String> name,
+  Value<String> code,
+  Value<String> address,
+  Value<String> contactPerson,
+  Value<String> phone,
+  Value<String> capacity,
+  Value<String> status,
+  Value<String> notes,
+  Value<bool> archived,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
 
 final class $$GodownsTableReferences
     extends BaseReferences<_$AppDatabase, $GodownsTable, GodownRow> {
@@ -42734,17 +42726,16 @@ class $$GodownsTableTableManager
                     >
                   >(state) {
                     if (storeId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.storeId,
-                                referencedTable: $$GodownsTableReferences
-                                    ._storeIdTable(db),
-                                referencedColumn: $$GodownsTableReferences
-                                    ._storeIdTable(db)
-                                    .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.storeId,
+                        referencedTable: $$GodownsTableReferences._storeIdTable(
+                          db,
+                        ),
+                        referencedColumn: $$GodownsTableReferences
+                            ._storeIdTable(db)
+                            .id,
+                      ) as T;
                     }
 
                     return state;
@@ -42772,34 +42763,32 @@ typedef $$GodownsTableProcessedTableManager =
       GodownRow,
       PrefetchHooks Function({bool storeId})
     >;
-typedef $$CategoriesTableCreateCompanionBuilder =
-    CategoriesCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String name,
-      Value<int> sortOrder,
-      Value<bool> active,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
-typedef $$CategoriesTableUpdateCompanionBuilder =
-    CategoriesCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> name,
-      Value<int> sortOrder,
-      Value<bool> active,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
+typedef $$CategoriesTableCreateCompanionBuilder = CategoriesCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String name,
+  Value<int> sortOrder,
+  Value<bool> active,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+typedef $$CategoriesTableUpdateCompanionBuilder = CategoriesCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> name,
+  Value<int> sortOrder,
+  Value<bool> active,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
 
 class $$CategoriesTableFilterComposer
     extends Composer<_$AppDatabase, $CategoriesTable> {
@@ -43078,32 +43067,30 @@ typedef $$CategoriesTableProcessedTableManager =
       CategoryRow,
       PrefetchHooks Function()
     >;
-typedef $$BrandsTableCreateCompanionBuilder =
-    BrandsCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String name,
-      Value<bool> active,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
-typedef $$BrandsTableUpdateCompanionBuilder =
-    BrandsCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> name,
-      Value<bool> active,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
+typedef $$BrandsTableCreateCompanionBuilder = BrandsCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String name,
+  Value<bool> active,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+typedef $$BrandsTableUpdateCompanionBuilder = BrandsCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> name,
+  Value<bool> active,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
 
 class $$BrandsTableFilterComposer
     extends Composer<_$AppDatabase, $BrandsTable> {
@@ -43359,36 +43346,34 @@ typedef $$BrandsTableProcessedTableManager =
       BrandRow,
       PrefetchHooks Function()
     >;
-typedef $$UnitsTableCreateCompanionBuilder =
-    UnitsCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String name,
-      required String symbol,
-      Value<int> decimalPlaces,
-      Value<bool> active,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
-typedef $$UnitsTableUpdateCompanionBuilder =
-    UnitsCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> name,
-      Value<String> symbol,
-      Value<int> decimalPlaces,
-      Value<bool> active,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
+typedef $$UnitsTableCreateCompanionBuilder = UnitsCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String name,
+  required String symbol,
+  Value<int> decimalPlaces,
+  Value<bool> active,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+typedef $$UnitsTableUpdateCompanionBuilder = UnitsCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> name,
+  Value<String> symbol,
+  Value<int> decimalPlaces,
+  Value<bool> active,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
 
 class $$UnitsTableFilterComposer extends Composer<_$AppDatabase, $UnitsTable> {
   $$UnitsTableFilterComposer({
@@ -43679,26 +43664,24 @@ typedef $$UnitsTableProcessedTableManager =
       UnitRow,
       PrefetchHooks Function()
     >;
-typedef $$PriceListsTableCreateCompanionBuilder =
-    PriceListsCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String name,
-      Value<String> type,
-      Value<bool> active,
-      required DateTime updatedAt,
-      Value<int> rowid,
-    });
-typedef $$PriceListsTableUpdateCompanionBuilder =
-    PriceListsCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> name,
-      Value<String> type,
-      Value<bool> active,
-      Value<DateTime> updatedAt,
-      Value<int> rowid,
-    });
+typedef $$PriceListsTableCreateCompanionBuilder = PriceListsCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String name,
+  Value<String> type,
+  Value<bool> active,
+  required DateTime updatedAt,
+  Value<int> rowid,
+});
+typedef $$PriceListsTableUpdateCompanionBuilder = PriceListsCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> name,
+  Value<String> type,
+  Value<bool> active,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
 
 class $$PriceListsTableFilterComposer
     extends Composer<_$AppDatabase, $PriceListsTable> {
@@ -43907,64 +43890,62 @@ typedef $$PriceListsTableProcessedTableManager =
       PriceListRow,
       PrefetchHooks Function()
     >;
-typedef $$ProductsTableCreateCompanionBuilder =
-    ProductsCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String name,
-      Value<String> sku,
-      Value<String> barcode,
-      Value<String?> categoryId,
-      Value<String?> brandId,
-      Value<String?> unitId,
-      Value<String> description,
-      Value<String> hsnCode,
-      Value<int> gstRateBps,
-      Value<int> purchasePricePaise,
-      Value<int> retailPricePaise,
-      Value<int> wholesalePricePaise,
-      Value<int> minStockMilli,
-      Value<String?> mainImageRef,
-      Value<String> galleryJson,
-      Value<bool> active,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<String?> lastOperationId,
-      Value<DateTime?> deletedAt,
-      Value<int> rowid,
-    });
-typedef $$ProductsTableUpdateCompanionBuilder =
-    ProductsCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> name,
-      Value<String> sku,
-      Value<String> barcode,
-      Value<String?> categoryId,
-      Value<String?> brandId,
-      Value<String?> unitId,
-      Value<String> description,
-      Value<String> hsnCode,
-      Value<int> gstRateBps,
-      Value<int> purchasePricePaise,
-      Value<int> retailPricePaise,
-      Value<int> wholesalePricePaise,
-      Value<int> minStockMilli,
-      Value<String?> mainImageRef,
-      Value<String> galleryJson,
-      Value<bool> active,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<String?> lastOperationId,
-      Value<DateTime?> deletedAt,
-      Value<int> rowid,
-    });
+typedef $$ProductsTableCreateCompanionBuilder = ProductsCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String name,
+  Value<String> sku,
+  Value<String> barcode,
+  Value<String?> categoryId,
+  Value<String?> brandId,
+  Value<String?> unitId,
+  Value<String> description,
+  Value<String> hsnCode,
+  Value<int> gstRateBps,
+  Value<int> purchasePricePaise,
+  Value<int> retailPricePaise,
+  Value<int> wholesalePricePaise,
+  Value<int> minStockMilli,
+  Value<String?> mainImageRef,
+  Value<String> galleryJson,
+  Value<bool> active,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<String?> lastOperationId,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
+typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> name,
+  Value<String> sku,
+  Value<String> barcode,
+  Value<String?> categoryId,
+  Value<String?> brandId,
+  Value<String?> unitId,
+  Value<String> description,
+  Value<String> hsnCode,
+  Value<int> gstRateBps,
+  Value<int> purchasePricePaise,
+  Value<int> retailPricePaise,
+  Value<int> wholesalePricePaise,
+  Value<int> minStockMilli,
+  Value<String?> mainImageRef,
+  Value<String> galleryJson,
+  Value<bool> active,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<String?> lastOperationId,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
 
 final class $$ProductsTableReferences
     extends BaseReferences<_$AppDatabase, $ProductsTable, ProductRow> {
@@ -45210,17 +45191,15 @@ class $$InventoriesTableTableManager
                     >
                   >(state) {
                     if (productId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.productId,
-                                referencedTable: $$InventoriesTableReferences
-                                    ._productIdTable(db),
-                                referencedColumn: $$InventoriesTableReferences
-                                    ._productIdTable(db)
-                                    .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.productId,
+                        referencedTable: $$InventoriesTableReferences
+                            ._productIdTable(db),
+                        referencedColumn: $$InventoriesTableReferences
+                            ._productIdTable(db)
+                            .id,
+                      ) as T;
                     }
 
                     return state;
@@ -45774,18 +45753,15 @@ class $$StockMovementsTableTableManager
                     >
                   >(state) {
                     if (productId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.productId,
-                                referencedTable: $$StockMovementsTableReferences
-                                    ._productIdTable(db),
-                                referencedColumn:
-                                    $$StockMovementsTableReferences
-                                        ._productIdTable(db)
-                                        .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.productId,
+                        referencedTable: $$StockMovementsTableReferences
+                            ._productIdTable(db),
+                        referencedColumn: $$StockMovementsTableReferences
+                            ._productIdTable(db)
+                            .id,
+                      ) as T;
                     }
 
                     return state;
@@ -46845,34 +46821,26 @@ class $$StockTransferItemsTableTableManager
                     >
                   >(state) {
                     if (transferId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.transferId,
-                                referencedTable:
-                                    $$StockTransferItemsTableReferences
-                                        ._transferIdTable(db),
-                                referencedColumn:
-                                    $$StockTransferItemsTableReferences
-                                        ._transferIdTable(db)
-                                        .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.transferId,
+                        referencedTable: $$StockTransferItemsTableReferences
+                            ._transferIdTable(db),
+                        referencedColumn: $$StockTransferItemsTableReferences
+                            ._transferIdTable(db)
+                            .id,
+                      ) as T;
                     }
                     if (productId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.productId,
-                                referencedTable:
-                                    $$StockTransferItemsTableReferences
-                                        ._productIdTable(db),
-                                referencedColumn:
-                                    $$StockTransferItemsTableReferences
-                                        ._productIdTable(db)
-                                        .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.productId,
+                        referencedTable: $$StockTransferItemsTableReferences
+                            ._productIdTable(db),
+                        referencedColumn: $$StockTransferItemsTableReferences
+                            ._productIdTable(db)
+                            .id,
+                      ) as T;
                     }
 
                     return state;
@@ -46900,70 +46868,68 @@ typedef $$StockTransferItemsTableProcessedTableManager =
       StockTransferItemRow,
       PrefetchHooks Function({bool transferId, bool productId})
     >;
-typedef $$CustomersTableCreateCompanionBuilder =
-    CustomersCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String name,
-      Value<String> businessName,
-      Value<String> phone,
-      Value<String> altPhone,
-      Value<String> email,
-      Value<String> billingAddress,
-      Value<String> deliveryAddress,
-      Value<String> city,
-      Value<String> state,
-      Value<String> pinCode,
-      Value<String> gstin,
-      Value<String> pan,
-      Value<String> customerType,
-      Value<int> creditLimitPaise,
-      Value<String?> priceListId,
-      Value<int> openingBalancePaise,
-      Value<String?> photoRef,
-      Value<String> notes,
-      Value<bool> active,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<String?> lastOperationId,
-      Value<DateTime?> deletedAt,
-      Value<int> rowid,
-    });
-typedef $$CustomersTableUpdateCompanionBuilder =
-    CustomersCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> name,
-      Value<String> businessName,
-      Value<String> phone,
-      Value<String> altPhone,
-      Value<String> email,
-      Value<String> billingAddress,
-      Value<String> deliveryAddress,
-      Value<String> city,
-      Value<String> state,
-      Value<String> pinCode,
-      Value<String> gstin,
-      Value<String> pan,
-      Value<String> customerType,
-      Value<int> creditLimitPaise,
-      Value<String?> priceListId,
-      Value<int> openingBalancePaise,
-      Value<String?> photoRef,
-      Value<String> notes,
-      Value<bool> active,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<String?> lastOperationId,
-      Value<DateTime?> deletedAt,
-      Value<int> rowid,
-    });
+typedef $$CustomersTableCreateCompanionBuilder = CustomersCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String name,
+  Value<String> businessName,
+  Value<String> phone,
+  Value<String> altPhone,
+  Value<String> email,
+  Value<String> billingAddress,
+  Value<String> deliveryAddress,
+  Value<String> city,
+  Value<String> state,
+  Value<String> pinCode,
+  Value<String> gstin,
+  Value<String> pan,
+  Value<String> customerType,
+  Value<int> creditLimitPaise,
+  Value<String?> priceListId,
+  Value<int> openingBalancePaise,
+  Value<String?> photoRef,
+  Value<String> notes,
+  Value<bool> active,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<String?> lastOperationId,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
+typedef $$CustomersTableUpdateCompanionBuilder = CustomersCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> name,
+  Value<String> businessName,
+  Value<String> phone,
+  Value<String> altPhone,
+  Value<String> email,
+  Value<String> billingAddress,
+  Value<String> deliveryAddress,
+  Value<String> city,
+  Value<String> state,
+  Value<String> pinCode,
+  Value<String> gstin,
+  Value<String> pan,
+  Value<String> customerType,
+  Value<int> creditLimitPaise,
+  Value<String?> priceListId,
+  Value<int> openingBalancePaise,
+  Value<String?> photoRef,
+  Value<String> notes,
+  Value<bool> active,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<String?> lastOperationId,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
 
 class $$CustomersTableFilterComposer
     extends Composer<_$AppDatabase, $CustomersTable> {
@@ -47564,62 +47530,60 @@ typedef $$CustomersTableProcessedTableManager =
       CustomerRow,
       PrefetchHooks Function()
     >;
-typedef $$SuppliersTableCreateCompanionBuilder =
-    SuppliersCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String name,
-      Value<String> businessName,
-      Value<String> phone,
-      Value<String> altPhone,
-      Value<String> email,
-      Value<String> address,
-      Value<String> city,
-      Value<String> state,
-      Value<String> pinCode,
-      Value<String> gstin,
-      Value<String> pan,
-      Value<int> openingBalancePaise,
-      Value<String?> photoRef,
-      Value<String> notes,
-      Value<bool> active,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<String?> lastOperationId,
-      Value<DateTime?> deletedAt,
-      Value<int> rowid,
-    });
-typedef $$SuppliersTableUpdateCompanionBuilder =
-    SuppliersCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> name,
-      Value<String> businessName,
-      Value<String> phone,
-      Value<String> altPhone,
-      Value<String> email,
-      Value<String> address,
-      Value<String> city,
-      Value<String> state,
-      Value<String> pinCode,
-      Value<String> gstin,
-      Value<String> pan,
-      Value<int> openingBalancePaise,
-      Value<String?> photoRef,
-      Value<String> notes,
-      Value<bool> active,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<String?> lastOperationId,
-      Value<DateTime?> deletedAt,
-      Value<int> rowid,
-    });
+typedef $$SuppliersTableCreateCompanionBuilder = SuppliersCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String name,
+  Value<String> businessName,
+  Value<String> phone,
+  Value<String> altPhone,
+  Value<String> email,
+  Value<String> address,
+  Value<String> city,
+  Value<String> state,
+  Value<String> pinCode,
+  Value<String> gstin,
+  Value<String> pan,
+  Value<int> openingBalancePaise,
+  Value<String?> photoRef,
+  Value<String> notes,
+  Value<bool> active,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<String?> lastOperationId,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
+typedef $$SuppliersTableUpdateCompanionBuilder = SuppliersCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> name,
+  Value<String> businessName,
+  Value<String> phone,
+  Value<String> altPhone,
+  Value<String> email,
+  Value<String> address,
+  Value<String> city,
+  Value<String> state,
+  Value<String> pinCode,
+  Value<String> gstin,
+  Value<String> pan,
+  Value<int> openingBalancePaise,
+  Value<String?> photoRef,
+  Value<String> notes,
+  Value<bool> active,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<String?> lastOperationId,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
 
 class $$SuppliersTableFilterComposer
     extends Composer<_$AppDatabase, $SuppliersTable> {
@@ -49056,76 +49020,74 @@ typedef $$StaffMembersTableProcessedTableManager =
       StaffRow,
       PrefetchHooks Function({bool attendanceRecordsRefs})
     >;
-typedef $$DriversTableCreateCompanionBuilder =
-    DriversCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String driverCode,
-      required String fullName,
-      Value<String?> photoRef,
-      Value<String> phone,
-      Value<String> altPhone,
-      Value<String> address,
-      Value<DateTime?> dateOfBirth,
-      Value<DateTime?> joiningDate,
-      Value<String> licenceNumber,
-      Value<String> licenceType,
-      Value<DateTime?> licenceExpiryDate,
-      Value<String?> assignedStoreId,
-      Value<String?> vehicleId,
-      Value<String> salaryType,
-      Value<int> basicSalaryPaise,
-      Value<String> bankDetails,
-      Value<String> upiId,
-      Value<String> emergencyContact,
-      Value<String?> licenceDocRef,
-      Value<String?> identityDocRef,
-      Value<String> employmentStatus,
-      Value<String> notes,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<String?> lastOperationId,
-      Value<DateTime?> deletedAt,
-      Value<int> rowid,
-    });
-typedef $$DriversTableUpdateCompanionBuilder =
-    DriversCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> driverCode,
-      Value<String> fullName,
-      Value<String?> photoRef,
-      Value<String> phone,
-      Value<String> altPhone,
-      Value<String> address,
-      Value<DateTime?> dateOfBirth,
-      Value<DateTime?> joiningDate,
-      Value<String> licenceNumber,
-      Value<String> licenceType,
-      Value<DateTime?> licenceExpiryDate,
-      Value<String?> assignedStoreId,
-      Value<String?> vehicleId,
-      Value<String> salaryType,
-      Value<int> basicSalaryPaise,
-      Value<String> bankDetails,
-      Value<String> upiId,
-      Value<String> emergencyContact,
-      Value<String?> licenceDocRef,
-      Value<String?> identityDocRef,
-      Value<String> employmentStatus,
-      Value<String> notes,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<String?> lastOperationId,
-      Value<DateTime?> deletedAt,
-      Value<int> rowid,
-    });
+typedef $$DriversTableCreateCompanionBuilder = DriversCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String driverCode,
+  required String fullName,
+  Value<String?> photoRef,
+  Value<String> phone,
+  Value<String> altPhone,
+  Value<String> address,
+  Value<DateTime?> dateOfBirth,
+  Value<DateTime?> joiningDate,
+  Value<String> licenceNumber,
+  Value<String> licenceType,
+  Value<DateTime?> licenceExpiryDate,
+  Value<String?> assignedStoreId,
+  Value<String?> vehicleId,
+  Value<String> salaryType,
+  Value<int> basicSalaryPaise,
+  Value<String> bankDetails,
+  Value<String> upiId,
+  Value<String> emergencyContact,
+  Value<String?> licenceDocRef,
+  Value<String?> identityDocRef,
+  Value<String> employmentStatus,
+  Value<String> notes,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<String?> lastOperationId,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
+typedef $$DriversTableUpdateCompanionBuilder = DriversCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> driverCode,
+  Value<String> fullName,
+  Value<String?> photoRef,
+  Value<String> phone,
+  Value<String> altPhone,
+  Value<String> address,
+  Value<DateTime?> dateOfBirth,
+  Value<DateTime?> joiningDate,
+  Value<String> licenceNumber,
+  Value<String> licenceType,
+  Value<DateTime?> licenceExpiryDate,
+  Value<String?> assignedStoreId,
+  Value<String?> vehicleId,
+  Value<String> salaryType,
+  Value<int> basicSalaryPaise,
+  Value<String> bankDetails,
+  Value<String> upiId,
+  Value<String> emergencyContact,
+  Value<String?> licenceDocRef,
+  Value<String?> identityDocRef,
+  Value<String> employmentStatus,
+  Value<String> notes,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<String?> lastOperationId,
+  Value<DateTime?> deletedAt,
+  Value<int> rowid,
+});
 
 class $$DriversTableFilterComposer
     extends Composer<_$AppDatabase, $DriversTable> {
@@ -49785,52 +49747,50 @@ typedef $$DriversTableProcessedTableManager =
       DriverRow,
       PrefetchHooks Function()
     >;
-typedef $$VehiclesTableCreateCompanionBuilder =
-    VehiclesCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String registrationNumber,
-      Value<String> vehicleType,
-      Value<String> make,
-      Value<String> model,
-      Value<String> capacity,
-      Value<String?> assignedStoreId,
-      Value<String?> assignedDriverId,
-      Value<DateTime?> insuranceExpiry,
-      Value<DateTime?> fitnessExpiry,
-      Value<DateTime?> pollutionExpiry,
-      Value<String> status,
-      Value<String> notes,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
-typedef $$VehiclesTableUpdateCompanionBuilder =
-    VehiclesCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> registrationNumber,
-      Value<String> vehicleType,
-      Value<String> make,
-      Value<String> model,
-      Value<String> capacity,
-      Value<String?> assignedStoreId,
-      Value<String?> assignedDriverId,
-      Value<DateTime?> insuranceExpiry,
-      Value<DateTime?> fitnessExpiry,
-      Value<DateTime?> pollutionExpiry,
-      Value<String> status,
-      Value<String> notes,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
+typedef $$VehiclesTableCreateCompanionBuilder = VehiclesCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String registrationNumber,
+  Value<String> vehicleType,
+  Value<String> make,
+  Value<String> model,
+  Value<String> capacity,
+  Value<String?> assignedStoreId,
+  Value<String?> assignedDriverId,
+  Value<DateTime?> insuranceExpiry,
+  Value<DateTime?> fitnessExpiry,
+  Value<DateTime?> pollutionExpiry,
+  Value<String> status,
+  Value<String> notes,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+typedef $$VehiclesTableUpdateCompanionBuilder = VehiclesCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> registrationNumber,
+  Value<String> vehicleType,
+  Value<String> make,
+  Value<String> model,
+  Value<String> capacity,
+  Value<String?> assignedStoreId,
+  Value<String?> assignedDriverId,
+  Value<DateTime?> insuranceExpiry,
+  Value<DateTime?> fitnessExpiry,
+  Value<DateTime?> pollutionExpiry,
+  Value<String> status,
+  Value<String> notes,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
 
 class $$VehiclesTableFilterComposer
     extends Composer<_$AppDatabase, $VehiclesTable> {
@@ -50781,19 +50741,15 @@ class $$AttendanceRecordsTableTableManager
                     >
                   >(state) {
                     if (staffId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.staffId,
-                                referencedTable:
-                                    $$AttendanceRecordsTableReferences
-                                        ._staffIdTable(db),
-                                referencedColumn:
-                                    $$AttendanceRecordsTableReferences
-                                        ._staffIdTable(db)
-                                        .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.staffId,
+                        referencedTable: $$AttendanceRecordsTableReferences
+                            ._staffIdTable(db),
+                        referencedColumn: $$AttendanceRecordsTableReferences
+                            ._staffIdTable(db)
+                            .id,
+                      ) as T;
                     }
 
                     return state;
@@ -52126,18 +52082,15 @@ class $$SalaryPaymentsTableTableManager
                     >
                   >(state) {
                     if (salaryId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.salaryId,
-                                referencedTable: $$SalaryPaymentsTableReferences
-                                    ._salaryIdTable(db),
-                                referencedColumn:
-                                    $$SalaryPaymentsTableReferences
-                                        ._salaryIdTable(db)
-                                        .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.salaryId,
+                        referencedTable: $$SalaryPaymentsTableReferences
+                            ._salaryIdTable(db),
+                        referencedColumn: $$SalaryPaymentsTableReferences
+                            ._salaryIdTable(db)
+                            .id,
+                      ) as T;
                     }
 
                     return state;
@@ -52165,98 +52118,96 @@ typedef $$SalaryPaymentsTableProcessedTableManager =
       SalaryPaymentRow,
       PrefetchHooks Function({bool salaryId})
     >;
-typedef $$SalesTableCreateCompanionBuilder =
-    SalesCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String invoiceNumber,
-      Value<String> documentType,
-      Value<String> documentStatus,
-      Value<String> saleType,
-      Value<String?> storeId,
-      Value<String?> godownId,
-      Value<String> deviceId,
-      Value<String> deviceCode,
-      Value<String?> customerId,
-      required DateTime invoiceDate,
-      Value<String> invoiceTime,
-      Value<String> sellerSnapshotJson,
-      Value<String> buyerSnapshotJson,
-      Value<int> subtotalPaise,
-      Value<int> discountPaise,
-      Value<int> taxableAmountPaise,
-      Value<int> cgstPaise,
-      Value<int> sgstPaise,
-      Value<int> igstPaise,
-      Value<int> roundOffPaise,
-      Value<int> grandTotalPaise,
-      Value<int> amountPaidPaise,
-      Value<int> balanceDuePaise,
-      Value<String> paymentMethod,
-      Value<String> upiReference,
-      Value<String> notes,
-      Value<bool> isGst,
-      Value<String?> priceListId,
-      Value<int> templateVersion,
-      Value<String> createdBy,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<DateTime?> finalizedAt,
-      Value<DateTime?> cancelledAt,
-      Value<String> cancelReason,
-      Value<DateTime?> validUntil,
-      Value<String?> convertedInvoiceId,
-      Value<int> version,
-      Value<String> syncStatus,
-      Value<String?> lastOperationId,
-      Value<int> rowid,
-    });
-typedef $$SalesTableUpdateCompanionBuilder =
-    SalesCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> invoiceNumber,
-      Value<String> documentType,
-      Value<String> documentStatus,
-      Value<String> saleType,
-      Value<String?> storeId,
-      Value<String?> godownId,
-      Value<String> deviceId,
-      Value<String> deviceCode,
-      Value<String?> customerId,
-      Value<DateTime> invoiceDate,
-      Value<String> invoiceTime,
-      Value<String> sellerSnapshotJson,
-      Value<String> buyerSnapshotJson,
-      Value<int> subtotalPaise,
-      Value<int> discountPaise,
-      Value<int> taxableAmountPaise,
-      Value<int> cgstPaise,
-      Value<int> sgstPaise,
-      Value<int> igstPaise,
-      Value<int> roundOffPaise,
-      Value<int> grandTotalPaise,
-      Value<int> amountPaidPaise,
-      Value<int> balanceDuePaise,
-      Value<String> paymentMethod,
-      Value<String> upiReference,
-      Value<String> notes,
-      Value<bool> isGst,
-      Value<String?> priceListId,
-      Value<int> templateVersion,
-      Value<String> createdBy,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<DateTime?> finalizedAt,
-      Value<DateTime?> cancelledAt,
-      Value<String> cancelReason,
-      Value<DateTime?> validUntil,
-      Value<String?> convertedInvoiceId,
-      Value<int> version,
-      Value<String> syncStatus,
-      Value<String?> lastOperationId,
-      Value<int> rowid,
-    });
+typedef $$SalesTableCreateCompanionBuilder = SalesCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String invoiceNumber,
+  Value<String> documentType,
+  Value<String> documentStatus,
+  Value<String> saleType,
+  Value<String?> storeId,
+  Value<String?> godownId,
+  Value<String> deviceId,
+  Value<String> deviceCode,
+  Value<String?> customerId,
+  required DateTime invoiceDate,
+  Value<String> invoiceTime,
+  Value<String> sellerSnapshotJson,
+  Value<String> buyerSnapshotJson,
+  Value<int> subtotalPaise,
+  Value<int> discountPaise,
+  Value<int> taxableAmountPaise,
+  Value<int> cgstPaise,
+  Value<int> sgstPaise,
+  Value<int> igstPaise,
+  Value<int> roundOffPaise,
+  Value<int> grandTotalPaise,
+  Value<int> amountPaidPaise,
+  Value<int> balanceDuePaise,
+  Value<String> paymentMethod,
+  Value<String> upiReference,
+  Value<String> notes,
+  Value<bool> isGst,
+  Value<String?> priceListId,
+  Value<int> templateVersion,
+  Value<String> createdBy,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<DateTime?> finalizedAt,
+  Value<DateTime?> cancelledAt,
+  Value<String> cancelReason,
+  Value<DateTime?> validUntil,
+  Value<String?> convertedInvoiceId,
+  Value<int> version,
+  Value<String> syncStatus,
+  Value<String?> lastOperationId,
+  Value<int> rowid,
+});
+typedef $$SalesTableUpdateCompanionBuilder = SalesCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> invoiceNumber,
+  Value<String> documentType,
+  Value<String> documentStatus,
+  Value<String> saleType,
+  Value<String?> storeId,
+  Value<String?> godownId,
+  Value<String> deviceId,
+  Value<String> deviceCode,
+  Value<String?> customerId,
+  Value<DateTime> invoiceDate,
+  Value<String> invoiceTime,
+  Value<String> sellerSnapshotJson,
+  Value<String> buyerSnapshotJson,
+  Value<int> subtotalPaise,
+  Value<int> discountPaise,
+  Value<int> taxableAmountPaise,
+  Value<int> cgstPaise,
+  Value<int> sgstPaise,
+  Value<int> igstPaise,
+  Value<int> roundOffPaise,
+  Value<int> grandTotalPaise,
+  Value<int> amountPaidPaise,
+  Value<int> balanceDuePaise,
+  Value<String> paymentMethod,
+  Value<String> upiReference,
+  Value<String> notes,
+  Value<bool> isGst,
+  Value<String?> priceListId,
+  Value<int> templateVersion,
+  Value<String> createdBy,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> finalizedAt,
+  Value<DateTime?> cancelledAt,
+  Value<String> cancelReason,
+  Value<DateTime?> validUntil,
+  Value<String?> convertedInvoiceId,
+  Value<int> version,
+  Value<String> syncStatus,
+  Value<String?> lastOperationId,
+  Value<int> rowid,
+});
 
 final class $$SalesTableReferences
     extends BaseReferences<_$AppDatabase, $SalesTable, SaleRow> {
@@ -53219,52 +53170,50 @@ typedef $$SalesTableProcessedTableManager =
       SaleRow,
       PrefetchHooks Function({bool saleItemsRefs})
     >;
-typedef $$SaleItemsTableCreateCompanionBuilder =
-    SaleItemsCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String saleId,
-      Value<String?> productId,
-      required String productName,
-      Value<String> sku,
-      Value<String> hsnCode,
-      Value<String> unit,
-      required int quantityMilli,
-      required int unitPricePaise,
-      Value<int> discountPaise,
-      Value<int> taxRateBps,
-      Value<int> taxAmountPaise,
-      Value<int> lineTotalPaise,
-      Value<int> sortOrder,
-      required DateTime createdAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
-typedef $$SaleItemsTableUpdateCompanionBuilder =
-    SaleItemsCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> saleId,
-      Value<String?> productId,
-      Value<String> productName,
-      Value<String> sku,
-      Value<String> hsnCode,
-      Value<String> unit,
-      Value<int> quantityMilli,
-      Value<int> unitPricePaise,
-      Value<int> discountPaise,
-      Value<int> taxRateBps,
-      Value<int> taxAmountPaise,
-      Value<int> lineTotalPaise,
-      Value<int> sortOrder,
-      Value<DateTime> createdAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
+typedef $$SaleItemsTableCreateCompanionBuilder = SaleItemsCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String saleId,
+  Value<String?> productId,
+  required String productName,
+  Value<String> sku,
+  Value<String> hsnCode,
+  Value<String> unit,
+  required int quantityMilli,
+  required int unitPricePaise,
+  Value<int> discountPaise,
+  Value<int> taxRateBps,
+  Value<int> taxAmountPaise,
+  Value<int> lineTotalPaise,
+  Value<int> sortOrder,
+  required DateTime createdAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+typedef $$SaleItemsTableUpdateCompanionBuilder = SaleItemsCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> saleId,
+  Value<String?> productId,
+  Value<String> productName,
+  Value<String> sku,
+  Value<String> hsnCode,
+  Value<String> unit,
+  Value<int> quantityMilli,
+  Value<int> unitPricePaise,
+  Value<int> discountPaise,
+  Value<int> taxRateBps,
+  Value<int> taxAmountPaise,
+  Value<int> lineTotalPaise,
+  Value<int> sortOrder,
+  Value<DateTime> createdAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
 
 final class $$SaleItemsTableReferences
     extends BaseReferences<_$AppDatabase, $SaleItemsTable, SaleItemRow> {
@@ -53780,17 +53729,15 @@ class $$SaleItemsTableTableManager
                     >
                   >(state) {
                     if (saleId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.saleId,
-                                referencedTable: $$SaleItemsTableReferences
-                                    ._saleIdTable(db),
-                                referencedColumn: $$SaleItemsTableReferences
-                                    ._saleIdTable(db)
-                                    .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.saleId,
+                        referencedTable: $$SaleItemsTableReferences
+                            ._saleIdTable(db),
+                        referencedColumn: $$SaleItemsTableReferences
+                            ._saleIdTable(db)
+                            .id,
+                      ) as T;
                     }
 
                     return state;
@@ -53818,68 +53765,66 @@ typedef $$SaleItemsTableProcessedTableManager =
       SaleItemRow,
       PrefetchHooks Function({bool saleId})
     >;
-typedef $$PurchasesTableCreateCompanionBuilder =
-    PurchasesCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String purchaseNumber,
-      Value<String?> supplierId,
-      Value<String?> storeId,
-      Value<String?> godownId,
-      Value<String> supplierInvoiceNumber,
-      required DateTime purchaseDate,
-      Value<int> subtotalPaise,
-      Value<int> discountPaise,
-      Value<int> taxableAmountPaise,
-      Value<int> cgstPaise,
-      Value<int> sgstPaise,
-      Value<int> igstPaise,
-      Value<int> grandTotalPaise,
-      Value<int> amountPaidPaise,
-      Value<int> balanceDuePaise,
-      Value<String> paymentMethod,
-      Value<String> status,
-      Value<String> notes,
-      Value<String> attachmentRefsJson,
-      Value<String> createdBy,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
-typedef $$PurchasesTableUpdateCompanionBuilder =
-    PurchasesCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> purchaseNumber,
-      Value<String?> supplierId,
-      Value<String?> storeId,
-      Value<String?> godownId,
-      Value<String> supplierInvoiceNumber,
-      Value<DateTime> purchaseDate,
-      Value<int> subtotalPaise,
-      Value<int> discountPaise,
-      Value<int> taxableAmountPaise,
-      Value<int> cgstPaise,
-      Value<int> sgstPaise,
-      Value<int> igstPaise,
-      Value<int> grandTotalPaise,
-      Value<int> amountPaidPaise,
-      Value<int> balanceDuePaise,
-      Value<String> paymentMethod,
-      Value<String> status,
-      Value<String> notes,
-      Value<String> attachmentRefsJson,
-      Value<String> createdBy,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
+typedef $$PurchasesTableCreateCompanionBuilder = PurchasesCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String purchaseNumber,
+  Value<String?> supplierId,
+  Value<String?> storeId,
+  Value<String?> godownId,
+  Value<String> supplierInvoiceNumber,
+  required DateTime purchaseDate,
+  Value<int> subtotalPaise,
+  Value<int> discountPaise,
+  Value<int> taxableAmountPaise,
+  Value<int> cgstPaise,
+  Value<int> sgstPaise,
+  Value<int> igstPaise,
+  Value<int> grandTotalPaise,
+  Value<int> amountPaidPaise,
+  Value<int> balanceDuePaise,
+  Value<String> paymentMethod,
+  Value<String> status,
+  Value<String> notes,
+  Value<String> attachmentRefsJson,
+  Value<String> createdBy,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+typedef $$PurchasesTableUpdateCompanionBuilder = PurchasesCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> purchaseNumber,
+  Value<String?> supplierId,
+  Value<String?> storeId,
+  Value<String?> godownId,
+  Value<String> supplierInvoiceNumber,
+  Value<DateTime> purchaseDate,
+  Value<int> subtotalPaise,
+  Value<int> discountPaise,
+  Value<int> taxableAmountPaise,
+  Value<int> cgstPaise,
+  Value<int> sgstPaise,
+  Value<int> igstPaise,
+  Value<int> grandTotalPaise,
+  Value<int> amountPaidPaise,
+  Value<int> balanceDuePaise,
+  Value<String> paymentMethod,
+  Value<String> status,
+  Value<String> notes,
+  Value<String> attachmentRefsJson,
+  Value<String> createdBy,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
 
 final class $$PurchasesTableReferences
     extends BaseReferences<_$AppDatabase, $PurchasesTable, PurchaseRow> {
@@ -55113,17 +55058,15 @@ class $$PurchaseItemsTableTableManager
                     >
                   >(state) {
                     if (purchaseId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.purchaseId,
-                                referencedTable: $$PurchaseItemsTableReferences
-                                    ._purchaseIdTable(db),
-                                referencedColumn: $$PurchaseItemsTableReferences
-                                    ._purchaseIdTable(db)
-                                    .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.purchaseId,
+                        referencedTable: $$PurchaseItemsTableReferences
+                            ._purchaseIdTable(db),
+                        referencedColumn: $$PurchaseItemsTableReferences
+                            ._purchaseIdTable(db)
+                            .id,
+                      ) as T;
                     }
 
                     return state;
@@ -55151,56 +55094,54 @@ typedef $$PurchaseItemsTableProcessedTableManager =
       PurchaseItemRow,
       PrefetchHooks Function({bool purchaseId})
     >;
-typedef $$PaymentsTableCreateCompanionBuilder =
-    PaymentsCompanion Function({
-      required String id,
-      Value<String> shopId,
-      Value<String> partyType,
-      Value<String?> partyId,
-      Value<String> partyName,
-      Value<String> direction,
-      required int amountPaise,
-      Value<String> method,
-      Value<String> reference,
-      Value<String> upiReference,
-      required DateTime paidAt,
-      Value<String?> invoiceId,
-      Value<String?> purchaseId,
-      Value<String?> salaryId,
-      Value<String> notes,
-      required String idempotencyKey,
-      Value<String> createdBy,
-      required DateTime createdAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
-typedef $$PaymentsTableUpdateCompanionBuilder =
-    PaymentsCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> partyType,
-      Value<String?> partyId,
-      Value<String> partyName,
-      Value<String> direction,
-      Value<int> amountPaise,
-      Value<String> method,
-      Value<String> reference,
-      Value<String> upiReference,
-      Value<DateTime> paidAt,
-      Value<String?> invoiceId,
-      Value<String?> purchaseId,
-      Value<String?> salaryId,
-      Value<String> notes,
-      Value<String> idempotencyKey,
-      Value<String> createdBy,
-      Value<DateTime> createdAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
+typedef $$PaymentsTableCreateCompanionBuilder = PaymentsCompanion Function({
+  required String id,
+  Value<String> shopId,
+  Value<String> partyType,
+  Value<String?> partyId,
+  Value<String> partyName,
+  Value<String> direction,
+  required int amountPaise,
+  Value<String> method,
+  Value<String> reference,
+  Value<String> upiReference,
+  required DateTime paidAt,
+  Value<String?> invoiceId,
+  Value<String?> purchaseId,
+  Value<String?> salaryId,
+  Value<String> notes,
+  required String idempotencyKey,
+  Value<String> createdBy,
+  required DateTime createdAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+typedef $$PaymentsTableUpdateCompanionBuilder = PaymentsCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> partyType,
+  Value<String?> partyId,
+  Value<String> partyName,
+  Value<String> direction,
+  Value<int> amountPaise,
+  Value<String> method,
+  Value<String> reference,
+  Value<String> upiReference,
+  Value<DateTime> paidAt,
+  Value<String?> invoiceId,
+  Value<String?> purchaseId,
+  Value<String?> salaryId,
+  Value<String> notes,
+  Value<String> idempotencyKey,
+  Value<String> createdBy,
+  Value<DateTime> createdAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
 
 class $$PaymentsTableFilterComposer
     extends Composer<_$AppDatabase, $PaymentsTable> {
@@ -55973,50 +55914,48 @@ typedef $$ExpenseCategoriesTableProcessedTableManager =
       ExpenseCategoryRow,
       PrefetchHooks Function()
     >;
-typedef $$ExpensesTableCreateCompanionBuilder =
-    ExpensesCompanion Function({
-      required String id,
-      Value<String> shopId,
-      Value<String?> categoryId,
-      Value<String> categoryName,
-      required int amountPaise,
-      required DateTime paidAt,
-      Value<String> method,
-      Value<String> description,
-      Value<String?> storeId,
-      Value<String?> attachmentRef,
-      Value<String> referenceType,
-      Value<String?> referenceId,
-      Value<String> createdBy,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
-typedef $$ExpensesTableUpdateCompanionBuilder =
-    ExpensesCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String?> categoryId,
-      Value<String> categoryName,
-      Value<int> amountPaise,
-      Value<DateTime> paidAt,
-      Value<String> method,
-      Value<String> description,
-      Value<String?> storeId,
-      Value<String?> attachmentRef,
-      Value<String> referenceType,
-      Value<String?> referenceId,
-      Value<String> createdBy,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
+typedef $$ExpensesTableCreateCompanionBuilder = ExpensesCompanion Function({
+  required String id,
+  Value<String> shopId,
+  Value<String?> categoryId,
+  Value<String> categoryName,
+  required int amountPaise,
+  required DateTime paidAt,
+  Value<String> method,
+  Value<String> description,
+  Value<String?> storeId,
+  Value<String?> attachmentRef,
+  Value<String> referenceType,
+  Value<String?> referenceId,
+  Value<String> createdBy,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+typedef $$ExpensesTableUpdateCompanionBuilder = ExpensesCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String?> categoryId,
+  Value<String> categoryName,
+  Value<int> amountPaise,
+  Value<DateTime> paidAt,
+  Value<String> method,
+  Value<String> description,
+  Value<String?> storeId,
+  Value<String?> attachmentRef,
+  Value<String> referenceType,
+  Value<String?> referenceId,
+  Value<String> createdBy,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
 
 class $$ExpensesTableFilterComposer
     extends Composer<_$AppDatabase, $ExpensesTable> {
@@ -56442,52 +56381,50 @@ typedef $$ExpensesTableProcessedTableManager =
       ExpenseRow,
       PrefetchHooks Function()
     >;
-typedef $$ReturnsTableCreateCompanionBuilder =
-    ReturnsCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String returnNumber,
-      Value<String> type,
-      Value<String?> originalDocumentId,
-      Value<String> originalDocumentNumber,
-      Value<String?> partyId,
-      Value<String> partyName,
-      Value<String> reason,
-      Value<int> amountPaise,
-      Value<String> refundMethod,
-      Value<String> stockAction,
-      Value<String> status,
-      Value<String> createdBy,
-      required DateTime createdAt,
-      Value<DateTime?> finalizedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
-typedef $$ReturnsTableUpdateCompanionBuilder =
-    ReturnsCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> returnNumber,
-      Value<String> type,
-      Value<String?> originalDocumentId,
-      Value<String> originalDocumentNumber,
-      Value<String?> partyId,
-      Value<String> partyName,
-      Value<String> reason,
-      Value<int> amountPaise,
-      Value<String> refundMethod,
-      Value<String> stockAction,
-      Value<String> status,
-      Value<String> createdBy,
-      Value<DateTime> createdAt,
-      Value<DateTime?> finalizedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
+typedef $$ReturnsTableCreateCompanionBuilder = ReturnsCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String returnNumber,
+  Value<String> type,
+  Value<String?> originalDocumentId,
+  Value<String> originalDocumentNumber,
+  Value<String?> partyId,
+  Value<String> partyName,
+  Value<String> reason,
+  Value<int> amountPaise,
+  Value<String> refundMethod,
+  Value<String> stockAction,
+  Value<String> status,
+  Value<String> createdBy,
+  required DateTime createdAt,
+  Value<DateTime?> finalizedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+typedef $$ReturnsTableUpdateCompanionBuilder = ReturnsCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> returnNumber,
+  Value<String> type,
+  Value<String?> originalDocumentId,
+  Value<String> originalDocumentNumber,
+  Value<String?> partyId,
+  Value<String> partyName,
+  Value<String> reason,
+  Value<int> amountPaise,
+  Value<String> refundMethod,
+  Value<String> stockAction,
+  Value<String> status,
+  Value<String> createdBy,
+  Value<DateTime> createdAt,
+  Value<DateTime?> finalizedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
 
 final class $$ReturnsTableReferences
     extends BaseReferences<_$AppDatabase, $ReturnsTable, ReturnRow> {
@@ -57468,17 +57405,15 @@ class $$ReturnItemsTableTableManager
                     >
                   >(state) {
                     if (returnId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.returnId,
-                                referencedTable: $$ReturnItemsTableReferences
-                                    ._returnIdTable(db),
-                                referencedColumn: $$ReturnItemsTableReferences
-                                    ._returnIdTable(db)
-                                    .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.returnId,
+                        referencedTable: $$ReturnItemsTableReferences
+                            ._returnIdTable(db),
+                        referencedColumn: $$ReturnItemsTableReferences
+                            ._returnIdTable(db)
+                            .id,
+                      ) as T;
                     }
 
                     return state;
@@ -57506,46 +57441,44 @@ typedef $$ReturnItemsTableProcessedTableManager =
       ReturnItemRow,
       PrefetchHooks Function({bool returnId})
     >;
-typedef $$OrdersTableCreateCompanionBuilder =
-    OrdersCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String orderNumber,
-      Value<String?> customerId,
-      Value<String> customerName,
-      Value<String> status,
-      Value<DateTime?> expectedDate,
-      Value<String> itemsJson,
-      Value<int> totalPaise,
-      Value<String> notes,
-      Value<String> createdBy,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
-typedef $$OrdersTableUpdateCompanionBuilder =
-    OrdersCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> orderNumber,
-      Value<String?> customerId,
-      Value<String> customerName,
-      Value<String> status,
-      Value<DateTime?> expectedDate,
-      Value<String> itemsJson,
-      Value<int> totalPaise,
-      Value<String> notes,
-      Value<String> createdBy,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
+typedef $$OrdersTableCreateCompanionBuilder = OrdersCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String orderNumber,
+  Value<String?> customerId,
+  Value<String> customerName,
+  Value<String> status,
+  Value<DateTime?> expectedDate,
+  Value<String> itemsJson,
+  Value<int> totalPaise,
+  Value<String> notes,
+  Value<String> createdBy,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+typedef $$OrdersTableUpdateCompanionBuilder = OrdersCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> orderNumber,
+  Value<String?> customerId,
+  Value<String> customerName,
+  Value<String> status,
+  Value<DateTime?> expectedDate,
+  Value<String> itemsJson,
+  Value<int> totalPaise,
+  Value<String> notes,
+  Value<String> createdBy,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
 
 class $$OrdersTableFilterComposer
     extends Composer<_$AppDatabase, $OrdersTable> {
@@ -57930,72 +57863,70 @@ typedef $$OrdersTableProcessedTableManager =
       OrderRow,
       PrefetchHooks Function()
     >;
-typedef $$DeliveriesTableCreateCompanionBuilder =
-    DeliveriesCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String deliveryNumber,
-      Value<String?> invoiceId,
-      Value<String> invoiceNumber,
-      Value<String?> customerId,
-      Value<String> customerName,
-      Value<String?> storeId,
-      Value<String?> godownId,
-      Value<String?> driverId,
-      Value<String> driverName,
-      Value<String?> vehicleId,
-      Value<String> vehicleNumber,
-      Value<String> deliveryAddress,
-      required DateTime deliveryDate,
-      Value<String> expectedDeliveryTime,
-      Value<DateTime?> actualDeliveryTime,
-      Value<int> deliveryChargePaise,
-      Value<int> additionalExpensePaise,
-      Value<String> status,
-      Value<String> proofImageRefs,
-      Value<String> customerAcknowledgement,
-      Value<String> notes,
-      Value<String> createdBy,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
-typedef $$DeliveriesTableUpdateCompanionBuilder =
-    DeliveriesCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> deliveryNumber,
-      Value<String?> invoiceId,
-      Value<String> invoiceNumber,
-      Value<String?> customerId,
-      Value<String> customerName,
-      Value<String?> storeId,
-      Value<String?> godownId,
-      Value<String?> driverId,
-      Value<String> driverName,
-      Value<String?> vehicleId,
-      Value<String> vehicleNumber,
-      Value<String> deliveryAddress,
-      Value<DateTime> deliveryDate,
-      Value<String> expectedDeliveryTime,
-      Value<DateTime?> actualDeliveryTime,
-      Value<int> deliveryChargePaise,
-      Value<int> additionalExpensePaise,
-      Value<String> status,
-      Value<String> proofImageRefs,
-      Value<String> customerAcknowledgement,
-      Value<String> notes,
-      Value<String> createdBy,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> version,
-      Value<String> deviceId,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
+typedef $$DeliveriesTableCreateCompanionBuilder = DeliveriesCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String deliveryNumber,
+  Value<String?> invoiceId,
+  Value<String> invoiceNumber,
+  Value<String?> customerId,
+  Value<String> customerName,
+  Value<String?> storeId,
+  Value<String?> godownId,
+  Value<String?> driverId,
+  Value<String> driverName,
+  Value<String?> vehicleId,
+  Value<String> vehicleNumber,
+  Value<String> deliveryAddress,
+  required DateTime deliveryDate,
+  Value<String> expectedDeliveryTime,
+  Value<DateTime?> actualDeliveryTime,
+  Value<int> deliveryChargePaise,
+  Value<int> additionalExpensePaise,
+  Value<String> status,
+  Value<String> proofImageRefs,
+  Value<String> customerAcknowledgement,
+  Value<String> notes,
+  Value<String> createdBy,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+typedef $$DeliveriesTableUpdateCompanionBuilder = DeliveriesCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> deliveryNumber,
+  Value<String?> invoiceId,
+  Value<String> invoiceNumber,
+  Value<String?> customerId,
+  Value<String> customerName,
+  Value<String?> storeId,
+  Value<String?> godownId,
+  Value<String?> driverId,
+  Value<String> driverName,
+  Value<String?> vehicleId,
+  Value<String> vehicleNumber,
+  Value<String> deliveryAddress,
+  Value<DateTime> deliveryDate,
+  Value<String> expectedDeliveryTime,
+  Value<DateTime?> actualDeliveryTime,
+  Value<int> deliveryChargePaise,
+  Value<int> additionalExpensePaise,
+  Value<String> status,
+  Value<String> proofImageRefs,
+  Value<String> customerAcknowledgement,
+  Value<String> notes,
+  Value<String> createdBy,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> version,
+  Value<String> deviceId,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
 
 final class $$DeliveriesTableReferences
     extends BaseReferences<_$AppDatabase, $DeliveriesTable, DeliveryRow> {
@@ -59219,17 +59150,15 @@ class $$DeliveryItemsTableTableManager
                     >
                   >(state) {
                     if (deliveryId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.deliveryId,
-                                referencedTable: $$DeliveryItemsTableReferences
-                                    ._deliveryIdTable(db),
-                                referencedColumn: $$DeliveryItemsTableReferences
-                                    ._deliveryIdTable(db)
-                                    .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.deliveryId,
+                        referencedTable: $$DeliveryItemsTableReferences
+                            ._deliveryIdTable(db),
+                        referencedColumn: $$DeliveryItemsTableReferences
+                            ._deliveryIdTable(db)
+                            .id,
+                      ) as T;
                     }
 
                     return state;
@@ -59663,18 +59592,15 @@ class $$DeliveryProofsTableTableManager
                     >
                   >(state) {
                     if (deliveryId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.deliveryId,
-                                referencedTable: $$DeliveryProofsTableReferences
-                                    ._deliveryIdTable(db),
-                                referencedColumn:
-                                    $$DeliveryProofsTableReferences
-                                        ._deliveryIdTable(db)
-                                        .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.deliveryId,
+                        referencedTable: $$DeliveryProofsTableReferences
+                            ._deliveryIdTable(db),
+                        referencedColumn: $$DeliveryProofsTableReferences
+                            ._deliveryIdTable(db)
+                            .id,
+                      ) as T;
                     }
 
                     return state;
@@ -60223,40 +60149,38 @@ typedef $$ImageMetadataTableProcessedTableManager =
       ImageMetadataRow,
       PrefetchHooks Function()
     >;
-typedef $$AuditLogsTableCreateCompanionBuilder =
-    AuditLogsCompanion Function({
-      required String id,
-      Value<String> shopId,
-      required String action,
-      required String entityType,
-      Value<String> entityId,
-      Value<String> actorId,
-      Value<String> actorName,
-      Value<String> deviceId,
-      Value<String?> beforeJson,
-      Value<String?> afterJson,
-      Value<String> note,
-      required DateTime createdAt,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
-typedef $$AuditLogsTableUpdateCompanionBuilder =
-    AuditLogsCompanion Function({
-      Value<String> id,
-      Value<String> shopId,
-      Value<String> action,
-      Value<String> entityType,
-      Value<String> entityId,
-      Value<String> actorId,
-      Value<String> actorName,
-      Value<String> deviceId,
-      Value<String?> beforeJson,
-      Value<String?> afterJson,
-      Value<String> note,
-      Value<DateTime> createdAt,
-      Value<String> syncStatus,
-      Value<int> rowid,
-    });
+typedef $$AuditLogsTableCreateCompanionBuilder = AuditLogsCompanion Function({
+  required String id,
+  Value<String> shopId,
+  required String action,
+  required String entityType,
+  Value<String> entityId,
+  Value<String> actorId,
+  Value<String> actorName,
+  Value<String> deviceId,
+  Value<String?> beforeJson,
+  Value<String?> afterJson,
+  Value<String> note,
+  required DateTime createdAt,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+typedef $$AuditLogsTableUpdateCompanionBuilder = AuditLogsCompanion Function({
+  Value<String> id,
+  Value<String> shopId,
+  Value<String> action,
+  Value<String> entityType,
+  Value<String> entityId,
+  Value<String> actorId,
+  Value<String> actorName,
+  Value<String> deviceId,
+  Value<String?> beforeJson,
+  Value<String?> afterJson,
+  Value<String> note,
+  Value<DateTime> createdAt,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
 
 class $$AuditLogsTableFilterComposer
     extends Composer<_$AppDatabase, $AuditLogsTable> {
@@ -60590,50 +60514,48 @@ typedef $$AuditLogsTableProcessedTableManager =
       AuditLogRow,
       PrefetchHooks Function()
     >;
-typedef $$SyncQueueTableCreateCompanionBuilder =
-    SyncQueueCompanion Function({
-      required String id,
-      required String operationId,
-      Value<String> shopId,
-      required String entityType,
-      required String collectionName,
-      required String entityId,
-      required String operation,
-      Value<String> payloadJson,
-      Value<String> status,
-      Value<int> attempts,
-      required DateTime nextAttemptAt,
-      Value<String?> lastError,
-      Value<int> baseVersion,
-      Value<int> priority,
-      Value<String> deviceId,
-      Value<String?> userId,
-      required DateTime createdAt,
-      required DateTime updatedAt,
-      Value<int> rowid,
-    });
-typedef $$SyncQueueTableUpdateCompanionBuilder =
-    SyncQueueCompanion Function({
-      Value<String> id,
-      Value<String> operationId,
-      Value<String> shopId,
-      Value<String> entityType,
-      Value<String> collectionName,
-      Value<String> entityId,
-      Value<String> operation,
-      Value<String> payloadJson,
-      Value<String> status,
-      Value<int> attempts,
-      Value<DateTime> nextAttemptAt,
-      Value<String?> lastError,
-      Value<int> baseVersion,
-      Value<int> priority,
-      Value<String> deviceId,
-      Value<String?> userId,
-      Value<DateTime> createdAt,
-      Value<DateTime> updatedAt,
-      Value<int> rowid,
-    });
+typedef $$SyncQueueTableCreateCompanionBuilder = SyncQueueCompanion Function({
+  required String id,
+  required String operationId,
+  Value<String> shopId,
+  required String entityType,
+  required String collectionName,
+  required String entityId,
+  required String operation,
+  Value<String> payloadJson,
+  Value<String> status,
+  Value<int> attempts,
+  required DateTime nextAttemptAt,
+  Value<String?> lastError,
+  Value<int> baseVersion,
+  Value<int> priority,
+  Value<String> deviceId,
+  Value<String?> userId,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> rowid,
+});
+typedef $$SyncQueueTableUpdateCompanionBuilder = SyncQueueCompanion Function({
+  Value<String> id,
+  Value<String> operationId,
+  Value<String> shopId,
+  Value<String> entityType,
+  Value<String> collectionName,
+  Value<String> entityId,
+  Value<String> operation,
+  Value<String> payloadJson,
+  Value<String> status,
+  Value<int> attempts,
+  Value<DateTime> nextAttemptAt,
+  Value<String?> lastError,
+  Value<int> baseVersion,
+  Value<int> priority,
+  Value<String> deviceId,
+  Value<String?> userId,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
 
 class $$SyncQueueTableFilterComposer
     extends Composer<_$AppDatabase, $SyncQueueTable> {

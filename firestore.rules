@@ -118,7 +118,9 @@ service cloud.firestore {
     match /invites/{inviteId} {
       allow get: if signedIn() &&
         (resource.data.email == request.auth.token.email || isOwnerOrAdmin(resource.data.shop_id));
-      allow list: if false; // invite codes are not enumerable
+      // Invite codes can not be enumerated by outsiders. Owners and admins
+      // may list the invites of their own shop (query must filter shop_id).
+      allow list: if signedIn() && can(resource.data.shop_id, 'manage_users');
       allow create: if signedIn() && can(request.resource.data.shop_id, 'manage_users') &&
         isNonEmptyString(inviteId, 64) &&
         request.resource.data.shop_id is string &&
@@ -126,7 +128,8 @@ service cloud.firestore {
         isNonEmptyString(request.resource.data.email, 254) &&
         request.resource.data.role in ['admin', 'manager', 'cashier', 'staff', 'driver', 'accountant'] &&
         request.resource.data.used == false &&
-        request.resource.data.expires_at is timestamp;
+        request.resource.data.expires_at is timestamp &&
+        request.resource.data.permissions is list;
       allow update: if signedIn() &&
         resource.data.used == false &&
         request.resource.data.used == true &&
@@ -183,9 +186,16 @@ service cloud.firestore {
               .hasOnly(['display_name', 'phone', 'photo_url', 'last_seen_at', 'updated_at'])
           ) ||
           (
+            // Owner/admin changing a member's role, permissions or status.
+            // The owner account and one's own account can not be changed.
             can(shopId, 'manage_users') &&
+            userId != shopId &&
+            userId != request.auth.uid &&
+            resource.data.role != 'owner' &&
             request.resource.data.role in ['admin', 'manager', 'cashier', 'staff', 'driver', 'accountant'] &&
-            request.resource.data.owner_id == resource.data.owner_id
+            request.resource.data.uid == resource.data.uid &&
+            request.resource.data.shop_id == shopId &&
+            request.resource.data.permissions is list
           );
         allow delete: if false;
       }
@@ -211,10 +221,17 @@ service cloud.firestore {
         allow create: if isActiveMember(shopId) &&
           request.resource.data.id == deviceId &&
           request.resource.data.shop_id == shopId;
+        // Any member may refresh a device record, but only the owner or an
+        // admin may switch a device on or off.
         allow update: if isActiveMember(shopId) &&
           resource.data.id == deviceId &&
-          request.resource.data.shop_id == shopId;
-        allow delete: if isOwnerOrAdmin(shopId);
+          request.resource.data.shop_id == shopId &&
+          (
+            isOwnerOrAdmin(shopId) ||
+            can(shopId, 'manage_users') ||
+            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['active'])
+          );
+        allow delete: if isOwnerOrAdmin(shopId) || can(shopId, 'manage_users');
       }
 
       match /products/{productId} {
@@ -278,6 +295,30 @@ service cloud.firestore {
         allow update: if can(shopId, 'manage_inventory') &&
           request.resource.data.version > resource.data.version;
         allow delete: if false;
+      }
+
+      match /stores/{storeId} {
+        allow read: if isActiveMember(shopId);
+        allow create: if can(shopId, 'manage_stores') && request.resource.data.id == storeId;
+        allow update: if can(shopId, 'manage_stores') &&
+          resource.data.id == storeId &&
+          request.resource.data.version > resource.data.version;
+        allow delete: if false; // archive only
+      }
+
+      match /godowns/{godownId} {
+        allow read: if isActiveMember(shopId);
+        allow create: if can(shopId, 'manage_godowns') && request.resource.data.id == godownId;
+        allow update: if can(shopId, 'manage_godowns') &&
+          resource.data.id == godownId &&
+          request.resource.data.version > resource.data.version;
+        allow delete: if false; // archive only
+      }
+
+      match /return_items/{itemId} {
+        allow read: if isActiveMember(shopId);
+        allow create: if can(shopId, 'manage_returns') && request.resource.data.id == itemId;
+        allow update, delete: if false; // returns are immutable once recorded
       }
 
       match /customers/{customerId} {
@@ -365,6 +406,16 @@ service cloud.firestore {
           (
             !isFinalized(resource.data) ||
             onlySyncFieldsChanged() ||
+            // An estimate or quotation may be linked to the invoice it was
+            // converted into. Tax invoices themselves stay immutable.
+            (
+              resource.data.document_type != 'invoice' &&
+              request.resource.data.document_status == 'converted' &&
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                'converted_invoice_id', 'document_status', 'notes',
+                'updated_at', 'version', 'sync_status', 'last_operation_id'
+              ])
+            ) ||
             (
               resource.data.document_status == 'finalized' &&
               request.resource.data.document_status == 'cancelled' &&
@@ -436,7 +487,23 @@ service cloud.firestore {
 
       match /returns/{returnId} {
         allow read: if isActiveMember(shopId);
-        allow create: if can(shopId, 'manage_returns') && request.resource.data.id == returnId;
+        // Covers goods returns and credit/debit notes. Notes never move stock.
+        allow create: if can(shopId, 'manage_returns') &&
+          request.resource.data.id == returnId &&
+          request.resource.data.type in [
+            'sale_return', 'purchase_return',
+            'credit_note', 'debit_note',
+            'purchase_debit_note', 'purchase_credit_note'
+          ] &&
+          (
+            !(request.resource.data.type in [
+              'credit_note', 'debit_note',
+              'purchase_debit_note', 'purchase_credit_note'
+            ]) ||
+            (request.resource.data.amount_paise is int &&
+             request.resource.data.amount_paise > 0 &&
+             request.resource.data.stock_action == 'none')
+          );
         allow update: if can(shopId, 'manage_returns') &&
           resource.data.id == returnId &&
           request.resource.data.status == 'finalized' &&
@@ -466,9 +533,14 @@ service cloud.firestore {
 
       match /orders/{orderId} {
         allow read: if isActiveMember(shopId);
-        allow create: if can(shopId, 'create_sales') && request.resource.data.id == orderId;
+        allow create: if can(shopId, 'create_sales') &&
+          request.resource.data.id == orderId &&
+          request.resource.data.status in ['open', 'confirmed', 'ready', 'delivered', 'invoiced', 'cancelled'];
+        // Closed orders (invoiced or cancelled) are final.
         allow update: if can(shopId, 'create_sales') &&
           resource.data.id == orderId &&
+          !(resource.data.status in ['invoiced', 'cancelled']) &&
+          request.resource.data.status in ['open', 'confirmed', 'ready', 'delivered', 'invoiced', 'cancelled'] &&
           request.resource.data.version > resource.data.version;
         allow delete: if false;
       }
@@ -476,9 +548,11 @@ service cloud.firestore {
       match /image_metadata/{imageId} {
         allow read: if isActiveMember(shopId);
         allow create: if isActiveMember(shopId) && request.resource.data.id == imageId;
+        // The member who captured the photo (owner_uid) completes its upload
+        // details; owners and admins may always update.
         allow update: if isActiveMember(shopId) &&
-          resource.data.owner_id == request.auth.uid;
-        allow delete: if isOwnerOrAdmin(shopId) || resource.data.owner_id == request.auth.uid;
+          (resource.data.owner_uid == request.auth.uid || isOwnerOrAdmin(shopId));
+        allow delete: if isOwnerOrAdmin(shopId) || resource.data.owner_uid == request.auth.uid;
       }
 
       match /audit_logs/{logId} {

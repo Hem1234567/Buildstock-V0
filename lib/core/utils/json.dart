@@ -66,15 +66,20 @@ class Json {
       if (value is DateTime) {
         out[cloudKey] = value.toUtc().toIso8601String();
       } else if (value is int && _dateKeys.contains(cloudKey)) {
-        out[cloudKey] = DateTime.fromMillisecondsSinceEpoch(
-          value * 1000,
-          isUtc: true,
-        ).toIso8601String();
+        out[cloudKey] = epochToDate(value, utc: true).toIso8601String();
       } else {
         out[cloudKey] = value;
       }
     });
     return out;
+  }
+
+  /// Accepts an epoch in seconds (SQLite storage) or milliseconds (Drift's
+  /// `toJson`). Values above 1e11 can only be milliseconds, since 1e11 seconds
+  /// is the year 5138.
+  static DateTime epochToDate(int value, {bool utc = false}) {
+    final millis = value.abs() > 100000000000 ? value : value * 1000;
+    return DateTime.fromMillisecondsSinceEpoch(millis, isUtc: utc);
   }
 
   static bool isDateKey(String key) => _dateKeys.contains(key);
@@ -139,7 +144,7 @@ class Json {
   static DateTime? asDate(Object? value) {
     if (value is DateTime) return value;
     if (value is String) return DateTime.tryParse(value);
-    if (value is int) return DateTime.fromMillisecondsSinceEpoch(value * 1000);
+    if (value is int) return epochToDate(value);
     return null;
   }
 

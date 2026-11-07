@@ -5,6 +5,8 @@ import 'package:buildstock/app/theme/app_theme.dart';
 import 'package:buildstock/core/utils/money.dart';
 import 'package:buildstock/core/utils/quantity.dart';
 import 'package:buildstock/core/utils/validators.dart';
+import 'package:buildstock/core/scanner/barcode_scanner_screen.dart';
+import 'package:buildstock/core/widgets/photo_field.dart';
 import 'package:buildstock/core/widgets/section_card.dart';
 
 enum AppFieldType {
@@ -19,6 +21,7 @@ enum AppFieldType {
   date,
   dropdown,
   toggle,
+  photo,
 }
 
 class AppFieldOption {
@@ -43,6 +46,8 @@ class AppField {
     this.enabled = true,
     this.minLines = 3,
     this.maxLength,
+    this.photoOwner = 'general',
+    this.scannable = false,
   });
 
   final String key;
@@ -56,6 +61,12 @@ class AppField {
   final bool enabled;
   final int minLines;
   final int? maxLength;
+
+  /// For [AppFieldType.photo]: the kind of record the photo belongs to.
+  final String photoOwner;
+
+  /// Shows a camera button that fills the text field with a scanned code.
+  final bool scannable;
 }
 
 class AppFormScreen extends StatefulWidget {
@@ -90,6 +101,7 @@ class _AppFormScreenState extends State<AppFormScreen> {
   final Map<String, String?> _dropdowns = {};
   final Map<String, bool> _toggles = {};
   final Map<String, DateTime?> _dates = {};
+  final Map<String, String?> _photos = {};
   bool _saving = false;
   String? _error;
 
@@ -100,6 +112,8 @@ class _AppFormScreenState extends State<AppFormScreen> {
       switch (field.type) {
         case AppFieldType.toggle:
           _toggles[field.key] = field.initial == true;
+        case AppFieldType.photo:
+          _photos[field.key] = field.initial?.toString();
         case AppFieldType.dropdown:
           _dropdowns[field.key] = field.initial?.toString();
         case AppFieldType.date:
@@ -153,60 +167,56 @@ class _AppFormScreenState extends State<AppFormScreen> {
         ],
       ),
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 760),
-            child: Form(
-              key: _formKey,
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
-                children: [
-                  if (widget.header != null) ...[
-                    widget.header!,
-                    const SizedBox(height: AppSpacing.lg),
-                  ],
-                  if (widget.subtitle != null) ...[
-                    Text(widget.subtitle!, style: theme.textTheme.bodySmall),
-                    const SizedBox(height: AppSpacing.lg),
-                  ],
-                  for (final field in widget.fields) ...[
-                    _buildField(field),
-                    const SizedBox(height: AppSpacing.md),
-                  ],
-                  if (_error != null) ...[
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      _error!,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.danger,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final sidePad = constraints.maxWidth > 800
+                ? (constraints.maxWidth - 760) / 2
+                : 20.0;
+            return SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.fromLTRB(sidePad, 8, sidePad, 32),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (widget.header != null) ...[
+                      widget.header!,
+                      const SizedBox(height: AppSpacing.lg),
+                    ],
+                    if (widget.subtitle != null) ...[
+                      Text(widget.subtitle!, style: theme.textTheme.bodySmall),
+                      const SizedBox(height: AppSpacing.lg),
+                    ],
+                    for (final field in widget.fields) ...[
+                      _buildField(field),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+                    if (_error != null) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        _error!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.danger,
+                        ),
                       ),
+                    ],
+                    const SizedBox(height: AppSpacing.lg),
+                    FilledButton(
+                      onPressed: _saving ? null : _submit,
+                      child: _saving
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(widget.saveLabel),
                     ),
                   ],
-                ],
+                ),
               ),
-            ),
-          ),
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 760),
-            child: SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _saving ? null : _submit,
-                child: _saving
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(widget.saveLabel),
-              ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
@@ -214,6 +224,16 @@ class _AppFormScreenState extends State<AppFormScreen> {
 
   Widget _buildField(AppField field) {
     switch (field.type) {
+      case AppFieldType.photo:
+        return PhotoPickerField(
+          label: field.label,
+          helper: field.helper,
+          ownerType: field.photoOwner,
+          role: field.key,
+          enabled: field.enabled,
+          initialRef: _photos[field.key],
+          onChanged: (value) => _photos[field.key] = value,
+        );
       case AppFieldType.toggle:
         return SectionCard(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
@@ -321,6 +341,18 @@ class _AppFormScreenState extends State<AppFormScreen> {
             helperText: field.helper,
             prefixText: prefix,
             suffixText: suffix,
+            suffixIcon: field.scannable
+                ? IconButton(
+                    tooltip: 'Scan',
+                    icon: const Icon(Icons.qr_code_scanner),
+                    onPressed: () async {
+                      final code = await BarcodeScannerScreen.open(context);
+                      if (code != null) {
+                        _controllers[field.key]?.text = code;
+                      }
+                    },
+                  )
+                : null,
           ),
           validator: (value) => _validate(field, value),
         );
@@ -392,6 +424,8 @@ class _AppFormScreenState extends State<AppFormScreen> {
       switch (field.type) {
         case AppFieldType.toggle:
           values[field.key] = _toggles[field.key] ?? false;
+        case AppFieldType.photo:
+          values[field.key] = _photos[field.key];
         case AppFieldType.dropdown:
           values[field.key] = _dropdowns[field.key];
         case AppFieldType.date:

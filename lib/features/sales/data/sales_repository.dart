@@ -36,6 +36,7 @@ class SaleInput {
     this.storeId,
     this.godownId,
     this.date,
+    this.validDays = 15,
   });
 
   final List<InvoiceLine> lines;
@@ -56,6 +57,9 @@ class SaleInput {
   final String? storeId;
   final String? godownId;
   final DateTime? date;
+
+  /// Validity of an estimate or quotation, in days.
+  final int validDays;
 }
 
 class SaleResult {
@@ -253,14 +257,17 @@ class SalesRepository {
 
       for (final line in input.lines) {
         if (line.productId == null) continue;
-        await _applyStock(
-          line: line,
-          storeId: input.storeId,
-          godownId: input.godownId,
-          referenceId: saleId,
-          referenceType: 'sale',
-          occurredAt: date,
-        );
+        final parts = await _allocateStock(line, input.storeId, input.godownId);
+        for (final part in parts) {
+          await _applyStock(
+            line: part.line,
+            storeId: part.storeId,
+            godownId: part.godownId,
+            referenceId: saleId,
+            referenceType: 'sale',
+            occurredAt: date,
+          );
+        }
       }
 
       if (totals.amountPaidPaise > 0) {
@@ -330,16 +337,23 @@ class SalesRepository {
     final date = input.date ?? now;
     var number = '';
     await db.transaction(() async {
+      final documentType = input.documentType == DocumentType.quotation
+          ? DocumentType.quotation
+          : DocumentType.estimate;
       final sequence = await db.nextSequence(
         key: InvoiceNumber.sequenceKey(
-          documentType: DocumentType.estimate,
+          documentType: documentType,
           deviceCode: identity.deviceCode,
           date: date,
         ),
         prefix: profile.invoicePrefix,
       );
+      // A separate prefix keeps estimate and quotation numbers from ever
+      // matching a tax invoice number.
       number = InvoiceNumber.build(
-        prefix: profile.invoicePrefix,
+        prefix:
+            '${profile.invoicePrefix}-'
+            '${documentType == DocumentType.quotation ? 'QTN' : 'EST'}',
         date: date,
         deviceCode: identity.deviceCode,
         sequence: sequence,
@@ -352,7 +366,11 @@ class SalesRepository {
               id: saleId,
               shopId: Value(identity.shopId),
               invoiceNumber: number,
-              documentType: const Value(DocumentType.estimate),
+              documentType: Value(
+                input.documentType == DocumentType.quotation
+                    ? DocumentType.quotation
+                    : DocumentType.estimate,
+              ),
               documentStatus: const Value(DocumentStatus.finalized),
               saleType: Value(input.saleType),
               deviceId: Value(identity.deviceId),
@@ -377,7 +395,7 @@ class SalesRepository {
               createdAt: now,
               updatedAt: now,
               finalizedAt: Value(now),
-              validUntil: Value(now.add(const Duration(days: 15))),
+              validUntil: Value(now.add(Duration(days: input.validDays))),
               version: const Value(1),
             ),
           );
@@ -404,6 +422,120 @@ class SalesRepository {
     return SaleResult(saleId: saleId, invoiceNumber: number, totals: totals);
   }
 
+  /// Turns an estimate or quotation into a tax invoice. Stock is deducted
+  /// from [storeId]/[godownId] (or automatically when both are null) and the
+  /// source document is marked converted and linked to the new invoice.
+  Future<SaleResult> convertToInvoice(
+    String sourceId, {
+    String? storeId,
+    String? godownId,
+    int amountPaidPaise = 0,
+    String paymentMethod = PaymentMethods.cash,
+  }) async {
+    final source = await saleById(sourceId);
+    if (source == null) {
+      throw const AppFailure(FailureCode.notFound, 'Document not found');
+    }
+    if (source.documentType == DocumentType.invoice) {
+      throw const ValidationFailure('This document is already an invoice');
+    }
+    if (source.documentStatus != DocumentStatus.finalized) {
+      throw const ValidationFailure('Only an active estimate can be converted');
+    }
+    if (source.convertedInvoiceId != null) {
+      throw const ValidationFailure('This document was already converted');
+    }
+    final items = await itemsForSale(sourceId);
+    if (items.isEmpty) {
+      throw const ValidationFailure('This document has no items');
+    }
+    Map<String, dynamic> buyer = const {};
+    try {
+      final decoded = jsonDecode(source.buyerSnapshotJson);
+      if (decoded is Map<String, dynamic>) buyer = decoded;
+    } catch (_) {}
+    final lineDiscounts = items.fold<int>(
+      0,
+      (sum, item) => sum + item.discountPaise,
+    );
+    final invoiceDiscount = source.discountPaise > lineDiscounts
+        ? source.discountPaise - lineDiscounts
+        : 0;
+    final interState =
+        (source.igstPaise > 0) &&
+        source.cgstPaise == 0 &&
+        source.sgstPaise == 0;
+
+    return db.transaction(() async {
+      final result = await finalizeSale(
+        SaleInput(
+          lines: [
+            for (final item in items)
+              InvoiceLine(
+                productId: item.productId,
+                name: item.productName,
+                sku: item.sku,
+                hsnCode: item.hsnCode,
+                unit: item.unit,
+                quantityMilli: item.quantityMilli,
+                unitPricePaise: item.unitPricePaise,
+                discountPaise: item.discountPaise,
+                taxRateBps: item.taxRateBps,
+              ),
+          ],
+          saleType: source.saleType,
+          customerId: source.customerId,
+          customerName: (buyer['name'] as String?) ?? '',
+          customerPhone: (buyer['phone'] as String?) ?? '',
+          customerAddress: (buyer['address'] as String?) ?? '',
+          customerGstin: (buyer['gstin'] as String?) ?? '',
+          customerState: (buyer['state'] as String?) ?? '',
+          invoiceDiscountPaise: invoiceDiscount,
+          isGst: source.isGst,
+          interState: interState,
+          amountPaidPaise: amountPaidPaise,
+          paymentMethod: paymentMethod,
+          notes: source.notes,
+          storeId: storeId,
+          godownId: godownId,
+        ),
+      );
+      final now = DateTime.now();
+      await (db.update(db.sales)..where((t) => t.id.equals(sourceId))).write(
+        SalesCompanion(
+          convertedInvoiceId: Value(result.saleId),
+          documentStatus: const Value(DocumentStatus.converted),
+          notes: Value(
+            '${source.notes}${source.notes.isEmpty ? '' : '\n'}'
+            'Converted to invoice ${result.invoiceNumber}',
+          ),
+          updatedAt: Value(now),
+          version: Value(source.version + 1),
+          syncStatus: const Value(SyncStatus.pending),
+        ),
+      );
+      final updated = await saleById(sourceId);
+      await services.outbox.enqueue(
+        shopId: services.identity.shopId,
+        deviceId: services.identity.deviceId,
+        userId: services.identity.userId,
+        entityType: 'estimate',
+        collection: 'sales',
+        entityId: sourceId,
+        payload: Json.toCloud(updated!.toJson()),
+        baseVersion: source.version,
+        priority: 60,
+      );
+      await audit.write(
+        action: 'estimate_converted',
+        entityType: 'sale',
+        entityId: sourceId,
+        note: 'Converted to ${result.invoiceNumber}',
+      );
+      return result;
+    });
+  }
+
   Future<void> cancelInvoice(String saleId, String reason) async {
     final sale = await saleById(saleId);
     if (sale == null) {
@@ -428,8 +560,42 @@ class SalesRepository {
           syncStatus: const Value(SyncStatus.pending),
         ),
       );
-      // Cancellation returns everything that left stock back to its location.
-      for (final item in items) {
+      // Cancellation returns everything to the exact location it left from.
+      final movements =
+          await (db.select(db.stockMovements)..where(
+                (t) =>
+                    t.referenceId.equals(saleId) &
+                    t.referenceType.equals('sale'),
+              ))
+              .get();
+      final names = {
+        for (final item in items)
+          if (item.productId != null) item.productId!: item.productName,
+      };
+      for (final movement in movements) {
+        if (movement.quantityMilli >= 0) continue;
+        await _applyStock(
+          line: InvoiceLine(
+            productId: movement.productId,
+            name: names[movement.productId] ?? 'Product',
+            quantityMilli: -movement.quantityMilli,
+            unitPricePaise: movement.unitCostPaise,
+          ),
+          storeId: movement.storeId,
+          godownId: movement.godownId,
+          referenceId: saleId,
+          referenceType: 'sale_cancellation',
+          occurredAt: now,
+          inbound: true,
+        );
+      }
+      // Estimates and quotations never touched stock, so there is nothing to
+      // put back. Old invoices without movement records fall back to the items.
+      final legacyItems =
+          movements.isNotEmpty || sale.documentType != DocumentType.invoice
+          ? const <SaleItemRow>[]
+          : items;
+      for (final item in legacyItems) {
         if (item.productId == null) continue;
         await db.transaction(() async {
           final line = InvoiceLine(
@@ -590,7 +756,10 @@ class SalesRepository {
                     t.productId.equals(line.productId!) &
                     (storeId == null
                         ? const Constant<bool>(true)
-                        : t.storeId.equals(storeId)),
+                        : t.storeId.equals(storeId)) &
+                    (godownId == null
+                        ? const Constant<bool>(true)
+                        : t.godownId.equals(godownId)),
               ))
               .get();
       final available = rows.fold<int>(
@@ -606,6 +775,66 @@ class SalesRepository {
         );
       }
     }
+  }
+
+  /// Splits a line across stock locations. With an explicit store/godown the
+  /// whole quantity comes from there; otherwise the largest balances are used
+  /// first until the line is covered.
+  Future<List<_StockPart>> _allocateStock(
+    InvoiceLine line,
+    String? storeId,
+    String? godownId,
+  ) async {
+    if (storeId != null && godownId != null) {
+      return [_StockPart(line, storeId, godownId)];
+    }
+    final rows =
+        await (db.select(db.inventories)
+              ..where(
+                (t) =>
+                    t.productId.equals(line.productId!) &
+                    t.quantityMilli.isBiggerThanValue(0) &
+                    (storeId == null
+                        ? const Constant<bool>(true)
+                        : t.storeId.equals(storeId)) &
+                    (godownId == null
+                        ? const Constant<bool>(true)
+                        : t.godownId.equals(godownId)),
+              )
+              ..orderBy([(t) => OrderingTerm.desc(t.quantityMilli)]))
+            .get();
+    var remaining = line.quantityMilli;
+    final parts = <_StockPart>[];
+    for (final row in rows) {
+      if (remaining <= 0) break;
+      final take = row.quantityMilli < remaining
+          ? row.quantityMilli
+          : remaining;
+      parts.add(
+        _StockPart(
+          InvoiceLine(
+            productId: line.productId,
+            name: line.name,
+            sku: line.sku,
+            hsnCode: line.hsnCode,
+            unit: line.unit,
+            quantityMilli: take,
+            unitPricePaise: line.unitPricePaise,
+            taxRateBps: line.taxRateBps,
+          ),
+          row.storeId,
+          row.godownId,
+        ),
+      );
+      remaining -= take;
+    }
+    if (remaining > 0) {
+      throw AppFailure(
+        FailureCode.stock,
+        'Insufficient stock for ${line.name}',
+      );
+    }
+    return parts;
   }
 
   Future<void> _applyStock({
@@ -938,6 +1167,14 @@ final invoiceListProvider = StreamProvider.family<List<SaleRow>, String>((
       .watchDocuments(documentType: DocumentType.invoice, query: query);
 });
 
+/// Every sales document (invoices, estimates and quotations).
+final documentListProvider = StreamProvider.family<List<SaleRow>, String>((
+  ref,
+  query,
+) {
+  return ref.watch(salesRepositoryProvider).watchDocuments(query: query);
+});
+
 final saleProvider = FutureProvider.family<SaleRow?, String>((ref, id) {
   return ref.watch(salesRepositoryProvider).saleById(id);
 });
@@ -958,3 +1195,11 @@ final invoicePaymentsProvider = FutureProvider.family<List<PaymentRow>, String>(
     return ref.watch(salesRepositoryProvider).paymentsForInvoice(saleId);
   },
 );
+
+class _StockPart {
+  const _StockPart(this.line, this.storeId, this.godownId);
+
+  final InvoiceLine line;
+  final String? storeId;
+  final String? godownId;
+}

@@ -10,7 +10,11 @@ import 'package:buildstock/core/widgets/async_view.dart';
 import 'package:buildstock/core/widgets/section_card.dart';
 import 'package:buildstock/features/customers/data/parties_repository.dart';
 import 'package:buildstock/features/sales/data/sales_repository.dart';
+import 'package:buildstock/features/invoices/data/auto_print.dart';
+import 'package:buildstock/features/orders/data/orders_repository.dart';
 import 'package:buildstock/features/sales/presentation/cart_controller.dart';
+import 'package:buildstock/features/stores/data/transfer_repository.dart';
+import 'package:buildstock/features/stores/presentation/stock_location_picker.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -27,6 +31,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _discount = TextEditingController();
   final _notes = TextEditingController();
   String? _customerId;
+  String _docType = DocumentType.invoice;
+  StockLocation _location = const StockLocation();
+  final _validDays = TextEditingController(text: '15');
   String _method = PaymentMethods.cash;
   bool _saving = false;
   String? _error;
@@ -37,6 +44,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final cart = ref.read(cartProvider);
     _paid.text = (cart.totals.grandTotalPaise / 100).toStringAsFixed(2);
     _method = cart.paymentMethod;
+    _customerId = cart.customerId;
   }
 
   @override
@@ -48,6 +56,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       _paid,
       _discount,
       _notes,
+      _validDays,
     ]) {
       controller.dispose();
     }
@@ -67,6 +76,52 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
           children: [
+            SectionCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Document', style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(
+                        value: DocumentType.invoice,
+                        label: Text('Invoice'),
+                      ),
+                      ButtonSegment(
+                        value: DocumentType.estimate,
+                        label: Text('Estimate'),
+                      ),
+                      ButtonSegment(
+                        value: DocumentType.quotation,
+                        label: Text('Quotation'),
+                      ),
+                    ],
+                    selected: {_docType},
+                    onSelectionChanged: (value) =>
+                        setState(() => _docType = value.first),
+                  ),
+                  const SizedBox(height: 8),
+                  if (_docType == DocumentType.invoice)
+                    StockLocationDropdown(
+                      value: _location,
+                      onChanged: (value) => setState(() => _location = value),
+                      label: 'Take stock from',
+                    )
+                  else ...[
+                    TextField(
+                      controller: _validDays,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Valid for (days)',
+                        helperText: 'Estimates and quotations never change stock. Convert them to an invoice when the customer agrees.',
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
             SectionCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,7 +330,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   height: 18,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text('Finalize · ${Money.format(totals.grandTotalPaise)}'),
+              : Text(
+                  '${_docType == DocumentType.invoice ? 'Finalize' : (_docType == DocumentType.quotation ? 'Save quotation' : 'Save estimate')} · ${Money.format(totals.grandTotalPaise)}',
+                ),
         ),
       ),
     );
@@ -319,27 +376,45 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             .read(partiesRepositoryProvider)
             .customerById(_customerId!);
       }
-      final result = await ref
-          .read(salesRepositoryProvider)
-          .finalizeSale(
-            SaleInput(
-              lines: cart.lines.map((line) => line.toInvoiceLine()).toList(),
-              saleType: cart.saleType,
-              customerId: _customerId,
-              customerName: _name.text,
-              customerPhone: _phone.text,
-              customerAddress: _address.text,
-              customerState: customer?.state ?? '',
-              invoiceDiscountPaise: cart.invoiceDiscountPaise,
-              isGst: cart.isGst,
-              amountPaidPaise: cart.amountPaidPaise,
-              paymentMethod: _method,
-              notes: _notes.text.trim(),
-            ),
-          );
+      final input = SaleInput(
+        documentType: _docType,
+        validDays: int.tryParse(_validDays.text.trim()) ?? 15,
+        storeId: _location.storeId,
+        godownId: _location.godownId,
+        lines: cart.lines.map((line) => line.toInvoiceLine()).toList(),
+        saleType: cart.saleType,
+        customerId: _customerId,
+        customerName: _name.text,
+        customerPhone: _phone.text,
+        customerAddress: _address.text,
+        customerState: customer?.state ?? '',
+        invoiceDiscountPaise: cart.invoiceDiscountPaise,
+        isGst: cart.isGst,
+        amountPaidPaise: cart.amountPaidPaise,
+        paymentMethod: _method,
+        notes: _notes.text.trim(),
+      );
+      final repository = ref.read(salesRepositoryProvider);
+      final result = _docType == DocumentType.invoice
+          ? await repository.finalizeSale(input)
+          : await repository.saveEstimate(input);
+      if (cart.sourceOrderId != null && _docType == DocumentType.invoice) {
+        await ref
+            .read(ordersRepositoryProvider)
+            .markInvoiced(cart.sourceOrderId!, result.invoiceNumber);
+      }
       ref.read(cartProvider.notifier).clear();
       ref.invalidate(recentInvoicesProvider);
-      if (mounted) context.pushReplacement('/invoices/${result.saleId}');
+      String? printProblem;
+      if (_docType == DocumentType.invoice) {
+        printProblem = await autoPrintIfEnabled(ref, result.saleId);
+      }
+      if (!mounted) return;
+      if (printProblem != null) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(printProblem)));
+      }
+      context.pushReplacement('/invoices/${result.saleId}');
     } catch (error) {
       if (!mounted) return;
       setState(() => _error = error.toString().replaceFirst('AppFailure', ''));

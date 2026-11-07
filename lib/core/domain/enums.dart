@@ -168,6 +168,63 @@ abstract final class AttendanceStatus {
 abstract final class ReturnType {
   static const saleReturn = 'sale_return';
   static const purchaseReturn = 'purchase_return';
+
+  /// Reduces what a customer owes (price correction, goodwill, damaged goods
+  /// settled in money). Never moves stock.
+  static const creditNote = 'credit_note';
+
+  /// Increases what a customer owes (undercharge, extra charges). Never moves
+  /// stock.
+  static const debitNote = 'debit_note';
+
+  /// Reduces what you owe a supplier. Never moves stock.
+  static const purchaseDebitNote = 'purchase_debit_note';
+
+  /// Increases what you owe a supplier. Never moves stock.
+  static const purchaseCreditNote = 'purchase_credit_note';
+
+  static const noteTypes = [
+    creditNote,
+    debitNote,
+    purchaseDebitNote,
+    purchaseCreditNote,
+  ];
+
+  static bool isNote(String type) => noteTypes.contains(type);
+
+  static bool isCustomerNote(String type) =>
+      type == creditNote || type == debitNote;
+
+  static String label(String type) => switch (type) {
+    saleReturn => 'Sales return',
+    purchaseReturn => 'Purchase return',
+    creditNote => 'Credit note (customer)',
+    debitNote => 'Debit note (customer)',
+    purchaseDebitNote => 'Debit note (supplier, reduces payable)',
+    purchaseCreditNote => 'Credit note (supplier, increases payable)',
+    _ => type,
+  };
+
+  static String shortLabel(String type) => switch (type) {
+    saleReturn => 'Sales return',
+    purchaseReturn => 'Purchase return',
+    creditNote => 'Credit note',
+    debitNote => 'Debit note',
+    purchaseDebitNote => 'Supplier debit note',
+    purchaseCreditNote => 'Supplier credit note',
+    _ => type,
+  };
+
+  /// Number prefix for the document series.
+  static String prefix(String type) => switch (type) {
+    saleReturn => 'SRN',
+    purchaseReturn => 'PRN',
+    creditNote => 'CRN',
+    debitNote => 'DBN',
+    purchaseDebitNote => 'PDN',
+    purchaseCreditNote => 'PCN',
+    _ => 'RET',
+  };
 }
 
 abstract final class TransferStatus {

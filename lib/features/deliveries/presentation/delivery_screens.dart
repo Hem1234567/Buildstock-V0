@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:buildstock/app/theme/app_theme.dart';
 import 'package:buildstock/core/database/app_database.dart';
 import 'package:buildstock/core/domain/enums.dart';
+import 'package:buildstock/core/media/image_service.dart';
 import 'package:buildstock/core/utils/dates.dart';
+import 'package:buildstock/core/utils/json.dart';
 import 'package:buildstock/core/utils/money.dart';
 import 'package:buildstock/core/widgets/async_view.dart';
 import 'package:buildstock/core/widgets/feedback.dart';
@@ -59,8 +62,7 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen> {
           if (rows.isEmpty) {
             return const EmptyState(
               title: 'No deliveries',
-              message:
-                  'Create a delivery from a finalized invoice, assign a driver and record proof of delivery.',
+              message: 'Create a delivery from a finalized invoice, assign a driver and record proof of delivery.',
               icon: Icons.delivery_dining_outlined,
             );
           }
@@ -192,7 +194,6 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen> {
                           invoiceId: invoiceId,
                           driverId: driverId,
                         );
-                    ref.invalidate(deliveriesStreamProvider);
                     if (context.mounted) Navigator.pop(context);
                   } catch (error) {
                     if (context.mounted) {
@@ -235,7 +236,6 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen> {
                             deliveryId: delivery.id,
                             status: status,
                           );
-                      ref.invalidate(deliveriesStreamProvider);
                       if (context.mounted) Navigator.pop(context);
                     } catch (error) {
                       if (context.mounted) {
@@ -244,6 +244,17 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen> {
                     }
                   },
                 ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('Add proof of delivery photo'),
+              subtitle: Text(
+                '${Json.decodeList(delivery.proofImageRefs).length} photo(s) saved',
+              ),
+              onTap: () async {
+                Navigator.pop(context);
+                await _addProof(delivery);
+              },
+            ),
             if (delivery.driverId == null && drivers.isNotEmpty)
               ListTile(
                 leading: const Icon(Icons.person_add_alt),
@@ -257,6 +268,47 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _addProof(DeliveryRow delivery) async {
+    try {
+      final source = await showModalBottomSheet<ImageSource>(
+        context: context,
+        builder: (context) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: const Text('Take photo'),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('Choose from gallery'),
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (source == null) return;
+      final image = await ref
+          .read(imageServiceProvider)
+          .pick(
+            source: source,
+            ownerType: 'delivery',
+            role: 'proof',
+            ownerId: delivery.id,
+          );
+      if (image == null) return;
+      await ref
+          .read(operationsRepositoryProvider)
+          .addDeliveryProof(deliveryId: delivery.id, imageRef: image.path);
+      if (mounted) showActionMessage(context, 'Proof photo saved');
+    } catch (error) {
+      if (mounted) showActionMessage(context, error.toString());
+    }
   }
 
   Future<void> _assignDriver(
@@ -295,7 +347,6 @@ class _DeliveryListScreenState extends ConsumerState<DeliveryListScreen> {
                       deliveryId: delivery.id,
                       driverId: driverId,
                     );
-                ref.invalidate(deliveriesStreamProvider);
                 if (context.mounted) {
                   showActionMessage(context, 'Driver assigned');
                 }

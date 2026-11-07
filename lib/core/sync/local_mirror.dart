@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:buildstock/core/database/app_database.dart';
 import 'package:buildstock/core/domain/enums.dart';
 import 'package:buildstock/core/utils/json.dart';
+
 import 'sync_backend.dart';
 
 enum MirrorOutcome { applied, skipped, conflict, unknownCollection }
@@ -56,8 +57,7 @@ class LocalMirror {
         tableName: tableName,
         entityId: remote.id,
         queueId: pending.id,
-        message:
-            'Local changes are waiting to sync; the cloud copy was not applied.',
+        message: 'Local changes are waiting to sync; the cloud copy was not applied.',
       );
       return MirrorOutcome.conflict;
     }

@@ -101,9 +101,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                               children: [
                                 Text(
                                   product.name,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium,
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
@@ -178,19 +178,28 @@ class ProductFormScreen extends ConsumerWidget {
           initial: product?.name,
         ),
         AppField(key: 'sku', label: 'SKU', initial: product?.sku),
-        AppField(key: 'barcode', label: 'Barcode', initial: product?.barcode),
+        AppField(
+          key: 'barcode',
+          label: 'Barcode',
+          initial: product?.barcode,
+          scannable: true,
+        ),
         AppField(
           key: 'categoryId',
           label: 'Category',
           type: AppFieldType.dropdown,
-          initial: product?.categoryId,
+          initial: categories.any((c) => c.id == product?.categoryId)
+              ? product?.categoryId
+              : null,
           options: categories.map((c) => AppFieldOption(c.id, c.name)).toList(),
         ),
         AppField(
           key: 'brandId',
           label: 'Brand',
           type: AppFieldType.dropdown,
-          initial: product?.brandId,
+          initial: brands.any((b) => b.id == product?.brandId)
+              ? product?.brandId
+              : null,
           options: brands.map((b) => AppFieldOption(b.id, b.name)).toList(),
         ),
         AppField(
@@ -198,7 +207,9 @@ class ProductFormScreen extends ConsumerWidget {
           label: 'Unit',
           type: AppFieldType.dropdown,
           required: true,
-          initial: product?.unitId,
+          initial: units.any((u) => u.id == product?.unitId)
+              ? product?.unitId
+              : null,
           options: units
               .map((u) => AppFieldOption(u.id, '${u.name} (${u.symbol})'))
               .toList(),
@@ -237,6 +248,13 @@ class ProductFormScreen extends ConsumerWidget {
           helper: 'Used for low-stock alerts. Zero disables the alert.',
         ),
         AppField(
+          key: 'photo',
+          label: 'Product photo',
+          type: AppFieldType.photo,
+          photoOwner: 'product',
+          initial: product?.mainImageRef,
+        ),
+        AppField(
           key: 'description',
           label: 'Description',
           type: AppFieldType.multiline,
@@ -266,6 +284,7 @@ class ProductFormScreen extends ConsumerWidget {
             wholesalePricePaise: values['wholesalePrice'] as int? ?? 0,
             minStockMilli: values['minStock'] as int? ?? 0,
             description: values['description'] as String? ?? '',
+            imageRef: values['photo'] as String?,
             active: values['active'] as bool? ?? true,
           ),
           existingId: productId,
@@ -442,8 +461,7 @@ class CatalogueSettingsScreen extends ConsumerWidget {
             _NamedList(
               value: units,
               onAdd: null,
-              emptyMessage:
-                  'Units are seeded on first launch and can be extended in a future update. Standard units such as Bag, Ton, Cft and Nos are available.',
+              emptyMessage: 'Units are seeded on first launch and can be extended in a future update. Standard units such as Bag, Ton, Cft and Nos are available.',
             ),
           ],
         ),

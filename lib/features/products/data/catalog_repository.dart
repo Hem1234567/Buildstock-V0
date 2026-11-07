@@ -126,6 +126,21 @@ class CatalogRepository {
     });
   }
 
+  /// Finds an active product by exact barcode or SKU (used by the scanner).
+  Future<ProductRow?> productByCode(String code) async {
+    final value = code.trim();
+    if (value.isEmpty) return null;
+    return (db.select(db.products)
+          ..where(
+            (t) =>
+                (t.barcode.equals(value) | t.sku.equals(value)) &
+                t.deletedAt.isNull() &
+                t.active.equals(true),
+          )
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
   Future<ProductRow?> productById(String id) async {
     return (db.select(
       db.products,

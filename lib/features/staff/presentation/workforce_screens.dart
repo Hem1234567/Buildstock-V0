@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show OrderingTerm;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +11,9 @@ import 'package:buildstock/core/utils/money.dart';
 import 'package:buildstock/core/widgets/app_form.dart';
 import 'package:buildstock/core/widgets/async_view.dart';
 import 'package:buildstock/core/widgets/section_card.dart';
+import 'package:buildstock/core/database/database_provider.dart';
+import 'package:buildstock/features/business/data/business_repository.dart';
+import 'package:buildstock/features/staff/data/salary_slip_pdf.dart';
 import 'package:buildstock/features/staff/data/workforce_repository.dart';
 import 'package:buildstock/core/widgets/feedback.dart';
 import 'package:collection/collection.dart';
@@ -63,8 +67,7 @@ class _StaffListScreenState extends ConsumerState<StaffListScreen> {
                 if (rows.isEmpty) {
                   return const EmptyState(
                     title: 'No staff records',
-                    message:
-                        'Add real employees to record attendance, salaries and role permissions.',
+                    message: 'Add real employees to record attendance, salaries and role permissions.',
                     icon: Icons.badge_outlined,
                   );
                 }
@@ -99,9 +102,9 @@ class _StaffListScreenState extends ConsumerState<StaffListScreen> {
                               children: [
                                 Text(
                                   member.fullName,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium,
                                 ),
                                 Text(
                                   '${member.designation.isEmpty ? member.role : member.designation} · ${member.employeeCode}',
@@ -242,6 +245,13 @@ class StaffFormScreen extends ConsumerWidget {
           initial: staff?.emergencyContactPhone,
         ),
         AppField(
+          key: 'photo',
+          label: 'Staff photo',
+          type: AppFieldType.photo,
+          photoOwner: 'staff',
+          initial: staff?.photoRef,
+        ),
+        AppField(
           key: 'notes',
           label: 'Notes',
           type: AppFieldType.multiline,
@@ -268,6 +278,7 @@ class StaffFormScreen extends ConsumerWidget {
                 emergencyContactName: values['emergencyName'] as String? ?? '',
                 emergencyContactPhone:
                     values['emergencyPhone'] as String? ?? '',
+                photoRef: values['photo'] as String?,
                 notes: values['notes'] as String? ?? '',
               ),
               existingId: staffId,
@@ -309,8 +320,7 @@ class DriverListScreen extends ConsumerWidget {
                 if (rows.isEmpty) {
                   return const EmptyState(
                     title: 'No drivers yet',
-                    message:
-                        'Add drivers and vehicles to assign deliveries and track delivery history.',
+                    message: 'Add drivers and vehicles to assign deliveries and track delivery history.',
                     icon: Icons.drive_eta_outlined,
                   );
                 }
@@ -333,9 +343,9 @@ class DriverListScreen extends ConsumerWidget {
                               children: [
                                 Text(
                                   driver.fullName,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium,
                                 ),
                                 Text(
                                   '${driver.licenceNumber.isEmpty ? 'No licence on file' : driver.licenceNumber} · ${driver.phone}',
@@ -373,8 +383,7 @@ class _VehicleList extends ConsumerWidget {
           if (rows.isEmpty) {
             return const EmptyState(
               title: 'No vehicles yet',
-              message:
-                  'Add the lorries and vans used for deliveries to track insurance and assignments.',
+              message: 'Add the lorries and vans used for deliveries to track insurance and assignments.',
               icon: Icons.local_shipping_outlined,
             );
           }
@@ -548,6 +557,13 @@ class DriverFormScreen extends ConsumerWidget {
           initial: driver?.joiningDate,
         ),
         AppField(
+          key: 'photo',
+          label: 'Driver photo',
+          type: AppFieldType.photo,
+          photoOwner: 'driver',
+          initial: driver?.photoRef,
+        ),
+        AppField(
           key: 'notes',
           label: 'Notes',
           type: AppFieldType.multiline,
@@ -567,6 +583,7 @@ class DriverFormScreen extends ConsumerWidget {
                 salaryType: values['salaryType'] as String? ?? 'monthly',
                 basicSalaryPaise: values['basicSalary'] as int? ?? 0,
                 joiningDate: values['joiningDate'] as DateTime?,
+                photoRef: values['photo'] as String?,
                 notes: values['notes'] as String? ?? '',
               ),
               existingId: driverId,
@@ -725,8 +742,7 @@ class _SalaryScreenState extends ConsumerState<SalaryScreen> {
           if (rows.isEmpty) {
             return const EmptyState(
               title: 'No salary records',
-              message:
-                  'Generate salary from attendance and configured pay rules. No amount is assumed automatically.',
+              message: 'Generate salary from attendance and configured pay rules. No amount is assumed automatically.',
               icon: Icons.payments_outlined,
             );
           }
@@ -777,6 +793,10 @@ class _SalaryScreenState extends ConsumerState<SalaryScreen> {
                           'Balance ${Money.format(salary.balanceDuePaise)}',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
+                        TextButton(
+                          onPressed: () => _slip(salary),
+                          child: const Text('Slip'),
+                        ),
                         if (salary.balanceDuePaise > 0)
                           TextButton(
                             onPressed: () => _pay(salary),
@@ -792,6 +812,70 @@ class _SalaryScreenState extends ConsumerState<SalaryScreen> {
         },
       ),
     );
+  }
+
+  /// Builds the salary slip PDF and lets the user print or share it.
+  Future<void> _slip(SalaryRecordRow salary) async {
+    try {
+      final db = ref.read(databaseProvider);
+      final payments =
+          await (db.select(db.salaryPayments)
+                ..where((t) => t.salaryId.equals(salary.id))
+                ..orderBy([(t) => OrderingTerm.asc(t.paidAt)]))
+              .get();
+      var code = '';
+      var designation = '';
+      if (salary.personType == 'driver') {
+        final driver = await (db.select(
+          db.drivers,
+        )..where((t) => t.id.equals(salary.personId))).getSingleOrNull();
+        code = driver?.driverCode ?? '';
+        designation = 'Driver';
+      } else {
+        final staff = await (db.select(
+          db.staffMembers,
+        )..where((t) => t.id.equals(salary.personId))).getSingleOrNull();
+        code = staff?.employeeCode ?? '';
+        designation = staff?.designation ?? '';
+      }
+      final profile = await ref.read(businessRepositoryProvider).profile();
+      const builder = SalarySlipPdfBuilder();
+      final bytes = await builder.build(
+        salary: salary,
+        business: profile,
+        payments: payments,
+        employeeCode: code,
+        designation: designation,
+      );
+      if (!mounted) return;
+      final action = await showModalBottomSheet<String>(
+        context: context,
+        builder: (context) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.print_outlined),
+                title: const Text('Print salary slip'),
+                onTap: () => Navigator.pop(context, 'print'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.ios_share),
+                title: const Text('Share PDF'),
+                onTap: () => Navigator.pop(context, 'share'),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (action == 'print') {
+        await builder.print(bytes, 'Salary slip ${salary.personName}');
+      } else if (action == 'share') {
+        await builder.share(bytes, salary.personName, salary.periodStart);
+      }
+    } catch (error) {
+      if (mounted) showActionMessage(context, error.toString());
+    }
   }
 
   Future<void> _generate() async {

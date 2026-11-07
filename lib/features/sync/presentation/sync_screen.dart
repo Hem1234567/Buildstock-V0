@@ -204,8 +204,7 @@ class SyncCenterScreen extends ConsumerWidget {
                     const SectionCard(
                       child: EmptyState(
                         title: 'Everything is up to date',
-                        message:
-                            'New local changes will appear here until the cloud confirms them.',
+                        message: 'New local changes will appear here until the cloud confirms them.',
                         icon: Icons.cloud_done_outlined,
                         compact: true,
                       ),
@@ -281,10 +280,8 @@ class _Count extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             '$value',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-            ),
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(color: color, fontWeight: FontWeight.w700),
           ),
         ],
       ),

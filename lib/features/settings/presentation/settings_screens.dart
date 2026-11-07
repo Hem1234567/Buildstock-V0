@@ -98,6 +98,20 @@ class SettingsScreen extends ConsumerWidget {
                   'A4, 58 mm and 80 mm thermal',
                   () => context.push('/settings/printer'),
                 ),
+                _tile(
+                  context,
+                  Icons.photo_library_outlined,
+                  'Photo hosting',
+                  'Where product, logo and proof photos are uploaded',
+                  () => context.push('/settings/photos'),
+                ),
+                _tile(
+                  context,
+                  Icons.notifications_active_outlined,
+                  'Low stock alerts',
+                  'Notify when stock reaches the minimum',
+                  () => context.push('/settings/low-stock'),
+                ),
               ],
             ),
           ),
@@ -115,6 +129,27 @@ class SettingsScreen extends ConsumerWidget {
                       ? 'Connect to sync across devices'
                       : 'Outbox, retries and conflicts',
                   () => context.push('/sync'),
+                ),
+                _tile(
+                  context,
+                  Icons.backup_outlined,
+                  'Backup & restore',
+                  'Save and restore all business data',
+                  () => context.push('/settings/backup'),
+                ),
+                _tile(
+                  context,
+                  Icons.groups_outlined,
+                  'Team & devices',
+                  'Invite users, set roles, manage devices',
+                  () => context.push('/settings/team'),
+                ),
+                _tile(
+                  context,
+                  Icons.group_add_outlined,
+                  'Join a shop',
+                  'Redeem an invite code from the owner',
+                  () => context.push('/settings/join'),
                 ),
                 _tile(
                   context,
@@ -429,6 +464,27 @@ class BusinessProfileSettingsScreen extends ConsumerWidget {
           label: 'Invoice number prefix',
           initial: profile?.invoicePrefix ?? 'VBA',
         ),
+        AppField(
+          key: 'logo',
+          label: 'Business logo',
+          type: AppFieldType.photo,
+          photoOwner: 'business',
+          initial: profile?.logoRef,
+        ),
+        AppField(
+          key: 'signature',
+          label: 'Authorised signature',
+          type: AppFieldType.photo,
+          photoOwner: 'business',
+          initial: profile?.signatureRef,
+        ),
+        AppField(
+          key: 'stamp',
+          label: 'Business stamp',
+          type: AppFieldType.photo,
+          photoOwner: 'business',
+          initial: profile?.stampRef,
+        ),
       ],
       onSave: (values) async {
         await ref
@@ -456,77 +512,13 @@ class BusinessProfileSettingsScreen extends ConsumerWidget {
                 bankAccountNumber: values['bankAccount'] as String? ?? '',
                 ifsc: values['ifsc'] as String? ?? '',
                 invoicePrefix: values['prefix'] as String? ?? 'VBA',
+                logoRef: values['logo'] as String?,
+                signatureRef: values['signature'] as String?,
+                stampRef: values['stamp'] as String?,
                 isGstRegistered: (values['gstin'] as String? ?? '').isNotEmpty,
               ),
             );
         ref.invalidate(businessProfileProvider);
-      },
-    );
-  }
-}
-
-class PrinterSettingsScreen extends ConsumerWidget {
-  const PrinterSettingsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(appSettingsProvider).value ?? const {};
-    return AppFormScreen(
-      title: 'Printer & paper',
-      saveLabel: 'Save print settings',
-      fields: [
-        AppField(
-          key: 'paper',
-          label: 'Default paper',
-          type: AppFieldType.dropdown,
-          initial: settings['printer_paper'] ?? 'a4',
-          options: const [
-            AppFieldOption('a4', 'A4'),
-            AppFieldOption('58', 'Thermal 58 mm'),
-            AppFieldOption('80', 'Thermal 80 mm'),
-          ],
-        ),
-        AppField(
-          key: 'copies',
-          label: 'Copies',
-          type: AppFieldType.number,
-          initial: int.tryParse(settings['printer_copies'] ?? '1') ?? 1,
-        ),
-        AppField(
-          key: 'autoPrint',
-          label: 'Auto print after finalizing',
-          type: AppFieldType.toggle,
-          initial: settings['printer_auto'] == 'true',
-          helper: 'If disabled, you choose when to print from the invoice.',
-        ),
-        AppField(
-          key: 'printerName',
-          label: 'Printer name',
-          initial: settings['printer_name'] ?? '',
-          helper:
-              'Bluetooth, USB and network printers are selected through the '
-              'Android print dialog. This name is for your reference.',
-        ),
-      ],
-      onSave: (values) async {
-        final repository = ref.read(businessRepositoryProvider);
-        await repository.putSetting(
-          'printer_paper',
-          values['paper'] as String? ?? 'a4',
-        );
-        await repository.putSetting(
-          'printer_copies',
-          '${values['copies'] as int? ?? 1}',
-        );
-        await repository.putSetting(
-          'printer_auto',
-          '${values['autoPrint'] as bool? ?? false}',
-        );
-        await repository.putSetting(
-          'printer_name',
-          values['printerName'] as String? ?? '',
-        );
-        ref.invalidate(appSettingsProvider);
       },
     );
   }

@@ -61,15 +61,24 @@ final dashboardSummaryProvider = FutureProvider<DashboardSummary>((ref) async {
                   AND document_status = 'finalized') -
              (SELECT COALESCE(SUM(amount_paise), 0) FROM payments
                 WHERE party_type = 'customer' AND direction = 'in') -
-             (SELECT COALESCE(SUM(amount_paise), 0) FROM returns
-                WHERE type = 'sale_return' AND status = 'finalized')
+             (SELECT COALESCE(SUM(CASE WHEN type = 'debit_note'
+                                       THEN -amount_paise ELSE amount_paise END), 0)
+                FROM returns
+                WHERE type IN ('sale_return', 'credit_note', 'debit_note')
+                  AND status = 'finalized')
            )) AS receivables,
           (SELECT MAX(0,
              (SELECT COALESCE(SUM(opening_balance_paise), 0) FROM suppliers) +
              (SELECT COALESCE(SUM(grand_total_paise), 0) FROM purchases
                 WHERE status = 'finalized') -
              (SELECT COALESCE(SUM(amount_paise), 0) FROM payments
-                WHERE party_type = 'supplier' AND direction = 'out')
+                WHERE party_type = 'supplier' AND direction = 'out') -
+             (SELECT COALESCE(SUM(CASE WHEN type = 'purchase_credit_note'
+                                       THEN -amount_paise ELSE amount_paise END), 0)
+                FROM returns
+                WHERE type IN ('purchase_return', 'purchase_debit_note',
+                               'purchase_credit_note')
+                  AND status = 'finalized')
            )) AS payables,
           (SELECT COUNT(*) FROM products p
             WHERE p.active = 1 AND p.min_stock_milli > 0

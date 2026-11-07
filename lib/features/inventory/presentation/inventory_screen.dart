@@ -3,12 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:buildstock/app/theme/app_theme.dart';
 import 'package:buildstock/core/database/app_database.dart';
+import 'package:buildstock/core/scanner/barcode_scanner_screen.dart';
 import 'package:buildstock/core/utils/dates.dart';
+import 'package:buildstock/core/widgets/feedback.dart';
 import 'package:buildstock/core/utils/money.dart';
 import 'package:buildstock/core/utils/quantity.dart';
 import 'package:buildstock/core/widgets/async_view.dart';
 import 'package:buildstock/core/widgets/section_card.dart';
 import 'package:buildstock/features/products/data/catalog_repository.dart';
+import 'package:buildstock/features/stores/data/transfer_repository.dart';
+import 'package:buildstock/features/stores/presentation/stock_location_picker.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});
@@ -20,6 +24,30 @@ class InventoryScreen extends ConsumerStatefulWidget {
 class _InventoryScreenState extends ConsumerState<InventoryScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabs = TabController(length: 2, vsync: this);
+  StockLocation _filter = const StockLocation();
+  String? _productFilter;
+  String _productFilterName = '';
+
+  Future<void> _scanToFind() async {
+    final code = await BarcodeScannerScreen.open(
+      context,
+      title: 'Find product',
+      hint: 'Scan a product barcode to see its stock',
+    );
+    if (code == null || !mounted) return;
+    final product = await ref
+        .read(catalogRepositoryProvider)
+        .productByCode(code);
+    if (!mounted) return;
+    if (product == null) {
+      showActionMessage(context, 'No product found for $code');
+      return;
+    }
+    setState(() {
+      _productFilter = product.id;
+      _productFilterName = product.name;
+    });
+  }
 
   @override
   void dispose() {
@@ -34,6 +62,13 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inventory'),
+        actions: [
+          IconButton(
+            tooltip: 'Scan to find product',
+            onPressed: _scanToFind,
+            icon: const Icon(Icons.qr_code_scanner),
+          ),
+        ],
         bottom: TabBar(
           controller: _tabs,
           tabs: const [
@@ -52,7 +87,21 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
         children: [
           AsyncView(
             value: stock,
-            builder: (rows) {
+            builder: (allRows) {
+              final rows = allRows.where((row) {
+                final inv = row.inventory;
+                if (_productFilter != null && inv.productId != _productFilter) {
+                  return false;
+                }
+                if (_filter.storeId != null && inv.storeId != _filter.storeId) {
+                  return false;
+                }
+                if (_filter.godownId != null &&
+                    inv.godownId != _filter.godownId) {
+                  return false;
+                }
+                return true;
+              }).toList();
               final totalValue = rows.fold<int>(
                 0,
                 (sum, row) =>
@@ -88,11 +137,29 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
                     ),
                   ),
                   const SizedBox(height: 12),
+                  StockLocationDropdown(
+                    value: _filter,
+                    label: 'Show stock in',
+                    autoLabel: 'All locations',
+                    onChanged: (value) => setState(() => _filter = value),
+                  ),
+                  if (_productFilter != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: InputChip(
+                          label: Text(_productFilterName),
+                          onDeleted: () =>
+                              setState(() => _productFilter = null),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 12),
                   if (rows.isEmpty)
                     const EmptyState(
                       title: 'No stock records',
-                      message:
-                          'Stock appears here after opening stock, purchases or sales.',
+                      message: 'Stock appears here after opening stock, purchases or sales.',
                       icon: Icons.warehouse_outlined,
                     )
                   else
@@ -107,15 +174,15 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
                                 children: [
                                   Text(
                                     row.product.name,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleMedium,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium,
                                   ),
                                   Text(
                                     row.locationLabel,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall,
                                   ),
                                 ],
                               ),
@@ -125,9 +192,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
                               children: [
                                 Text(
                                   '${Quantity.format(row.inventory.quantityMilli)} ${row.unitSymbol ?? ''}',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium,
                                 ),
                                 Text(
                                   'Min ${Quantity.format(row.product.minStockMilli)}',
@@ -153,15 +220,15 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
   Future<void> _showAdjustment() async {
     final products = ref.read(productsStreamProvider('')).value ?? const [];
     if (products.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Add a product first')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Add a product first')));
       return;
     }
     var productId = products.first.id;
     var quantity = '';
     var reason = '';
     var isDamage = false;
+    var location = const StockLocation();
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -198,6 +265,13 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
                 onChanged: (value) =>
                     setModalState(() => productId = value ?? productId),
                 decoration: const InputDecoration(labelText: 'Product'),
+              ),
+              const SizedBox(height: 10),
+              StockLocationDropdown(
+                value: location,
+                label: 'Location',
+                autoLabel: 'No specific location',
+                onChanged: (value) => setModalState(() => location = value),
               ),
               const SizedBox(height: 10),
               TextField(
@@ -246,6 +320,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen>
                         .read(catalogRepositoryProvider)
                         .adjustStock(
                           productId: productId,
+                          storeId: location.storeId,
+                          godownId: location.godownId,
                           deltaMilli: milli,
                           reason: reason.trim(),
                           isDamage: isDamage,

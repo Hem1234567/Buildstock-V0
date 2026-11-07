@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import 'package:buildstock/core/qr/upi_qr.dart';
+import 'package:buildstock/core/scanner/invoice_qr.dart';
 import 'package:buildstock/core/utils/dates.dart';
 import 'package:buildstock/core/utils/money.dart';
 import 'package:buildstock/core/utils/quantity.dart';
@@ -521,6 +522,26 @@ class InvoiceA4 extends StatelessWidget {
             ),
           ),
         const Spacer(),
+        if (!document.isCancelled && document.number.isNotEmpty) ...[
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              QrImageView(
+                data: InvoiceQr.encode(document.number),
+                version: QrVersions.auto,
+                size: 64,
+                backgroundColor: Colors.white,
+                padding: EdgeInsets.zero,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Scan to open',
+                style: TextStyle(fontSize: template.smallSize - 1),
+              ),
+            ],
+          ),
+          const Spacer(),
+        ],
         SizedBox(
           width: contentWidth * 0.3,
           child: Column(

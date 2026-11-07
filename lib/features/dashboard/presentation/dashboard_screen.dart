@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:buildstock/core/utils/dates.dart';
 import 'package:buildstock/core/utils/money.dart';
@@ -64,7 +65,7 @@ class DashboardScreen extends ConsumerWidget {
               SectionHeader(
                 title: 'Recent invoices',
                 actionLabel: 'View all',
-                onAction: () => Navigator.of(context).pushNamed('/invoices'),
+                onAction: () => context.push('/invoices'),
               ),
               AsyncView(
                 value: recent,
@@ -74,8 +75,7 @@ class DashboardScreen extends ConsumerWidget {
                     return const SectionCard(
                       child: EmptyState(
                         title: 'No invoices yet',
-                        message:
-                            'Create your first invoice from Sales. Nothing is pre-filled with sample data.',
+                        message: 'Create your first invoice from Sales. Nothing is pre-filled with sample data.',
                         icon: Icons.receipt_long_outlined,
                         compact: true,
                       ),
@@ -94,9 +94,8 @@ class DashboardScreen extends ConsumerWidget {
                             trailing: StatusPill.document(
                               invoice.documentStatus,
                             ),
-                            onTap: () => Navigator.of(
-                              context,
-                            ).pushNamed('/invoices/${invoice.id}'),
+                            onTap: () =>
+                                context.push('/invoices/${invoice.id}'),
                           ),
                       ],
                     ),
@@ -123,9 +122,7 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: AppSpacing.md),
                       FilledButton(
-                        onPressed: () => Navigator.of(
-                          context,
-                        ).pushNamed('/settings/business'),
+                        onPressed: () => context.push('/settings/business'),
                         child: const Text('Set up business profile'),
                       ),
                     ],
@@ -146,7 +143,7 @@ class _SyncButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return IconButton(
       tooltip: 'Sync Center',
-      onPressed: () => Navigator.of(context).pushNamed('/sync'),
+      onPressed: () => context.push('/sync'),
       icon: const Icon(Icons.cloud_outlined),
     );
   }
@@ -315,7 +312,7 @@ class _QuickActions extends StatelessWidget {
           ActionChip(
             avatar: Icon(action.$2, size: 16),
             label: Text(action.$1),
-            onPressed: () => Navigator.of(context).pushNamed(action.$3),
+            onPressed: () => context.push(action.$3),
           ),
       ],
     );

@@ -7,18 +7,23 @@ import 'package:go_router/go_router.dart';
 
 import 'package:buildstock/app/theme/app_theme.dart';
 import 'package:buildstock/core/domain/enums.dart';
+import 'package:buildstock/core/scanner/barcode_scanner_screen.dart';
+import 'package:buildstock/core/scanner/invoice_qr.dart';
 import 'package:buildstock/core/utils/dates.dart';
 import 'package:buildstock/core/utils/json.dart';
 import 'package:buildstock/core/utils/money.dart';
 import 'package:buildstock/core/widgets/async_view.dart';
 import 'package:buildstock/core/widgets/section_card.dart';
 import 'package:buildstock/features/deliveries/data/operations_repository.dart';
+import 'package:buildstock/features/invoices/data/auto_print.dart';
 import 'package:buildstock/features/invoices/data/invoice_exporter.dart';
 import 'package:buildstock/features/invoices/data/invoice_pdf.dart';
 import 'package:buildstock/core/widgets/feedback.dart';
 import 'package:buildstock/features/invoices/domain/invoice_document.dart';
 import 'package:buildstock/features/invoices/presentation/invoice_a4.dart';
 import 'package:buildstock/features/sales/data/sales_repository.dart';
+import 'package:buildstock/features/stores/data/transfer_repository.dart';
+import 'package:buildstock/features/stores/presentation/stock_location_picker.dart';
 
 class InvoiceHistoryScreen extends ConsumerStatefulWidget {
   const InvoiceHistoryScreen({super.key, this.documentType = 'invoice'});
@@ -43,7 +48,7 @@ class _InvoiceHistoryScreenState extends ConsumerState<InvoiceHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final invoices = ref.watch(invoiceListProvider(_query));
+    final invoices = ref.watch(documentListProvider(_query));
     final filtered = invoices.whenData(
       (rows) => rows
           .where((row) => row.documentType == widget.documentType)
@@ -52,12 +57,17 @@ class _InvoiceHistoryScreenState extends ConsumerState<InvoiceHistoryScreen> {
     );
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.documentType == DocumentType.estimate
-              ? 'Estimates'
-              : 'Invoices',
-        ),
+        title: Text(switch (widget.documentType) {
+          DocumentType.estimate => 'Estimates',
+          DocumentType.quotation => 'Quotations',
+          _ => 'Invoices',
+        }),
         actions: [
+          IconButton(
+            tooltip: 'Scan bill QR',
+            onPressed: _scanToOpen,
+            icon: const Icon(Icons.qr_code_scanner),
+          ),
           IconButton(
             tooltip: 'Find bill in cloud',
             onPressed: _findInCloud,
@@ -103,8 +113,7 @@ class _InvoiceHistoryScreenState extends ConsumerState<InvoiceHistoryScreen> {
                 if (rows.isEmpty) {
                   return EmptyState(
                     title: 'No documents found',
-                    message:
-                        'Create an invoice from Sales. Finalized documents are never edited; corrections use returns or cancellation.',
+                    message: 'Create an invoice from Sales. Finalized documents are never edited; corrections use returns or cancellation.',
                     icon: Icons.receipt_long_outlined,
                     actionLabel: 'Open Sales',
                     onAction: () => context.go('/sales'),
@@ -128,9 +137,9 @@ class _InvoiceHistoryScreenState extends ConsumerState<InvoiceHistoryScreen> {
                               children: [
                                 Text(
                                   invoice.invoiceNumber,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium,
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
@@ -162,6 +171,23 @@ class _InvoiceHistoryScreenState extends ConsumerState<InvoiceHistoryScreen> {
         ],
       ),
     );
+  }
+
+  /// Scans the QR printed on a bill and opens that invoice.
+  Future<void> _scanToOpen() async {
+    final raw = await BarcodeScannerScreen.open(
+      context,
+      title: 'Scan bill QR',
+      hint: 'Scan the QR code printed on a bill',
+      qrOnly: true,
+    );
+    if (raw == null || !mounted) return;
+    final payload = InvoiceQr.parse(raw);
+    if (payload == null) {
+      showActionMessage(context, 'This is not a BuildStock bill QR code');
+      return;
+    }
+    await openInvoiceByNumber(context, ref, payload.invoiceNumber);
   }
 
   Future<void> _findInCloud() async {
@@ -266,19 +292,47 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen> {
                   await _recordPayment();
                 case 'delivery':
                   await _createDelivery();
+                case 'convert':
+                  await _convertToInvoice();
                 case 'cancel':
                   await _cancel();
               }
             },
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'pdf', child: Text('Download PDF')),
-              PopupMenuItem(value: 'image', child: Text('Download image')),
-              PopupMenuItem(value: 'thermal58', child: Text('Thermal 58 mm')),
-              PopupMenuItem(value: 'thermal80', child: Text('Thermal 80 mm')),
-              PopupMenuDivider(),
-              PopupMenuItem(value: 'payment', child: Text('Record payment')),
-              PopupMenuItem(value: 'delivery', child: Text('Create delivery')),
-              PopupMenuItem(value: 'cancel', child: Text('Cancel invoice')),
+            itemBuilder: (context) => [
+              if (sale.value != null &&
+                  sale.value!.documentType != DocumentType.invoice &&
+                  sale.value!.documentStatus == DocumentStatus.finalized &&
+                  sale.value!.convertedInvoiceId == null)
+                const PopupMenuItem(
+                  value: 'convert',
+                  child: Text('Convert to invoice'),
+                ),
+              const PopupMenuItem(value: 'pdf', child: Text('Download PDF')),
+              const PopupMenuItem(
+                value: 'image',
+                child: Text('Download image'),
+              ),
+              const PopupMenuItem(
+                value: 'thermal58',
+                child: Text('Thermal 58 mm'),
+              ),
+              const PopupMenuItem(
+                value: 'thermal80',
+                child: Text('Thermal 80 mm'),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'payment',
+                child: Text('Record payment'),
+              ),
+              const PopupMenuItem(
+                value: 'delivery',
+                child: Text('Create delivery'),
+              ),
+              const PopupMenuItem(
+                value: 'cancel',
+                child: Text('Cancel invoice'),
+              ),
             ],
           ),
         ],
@@ -289,8 +343,7 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen> {
           if (saleRow == null) {
             return const EmptyState(
               title: 'Invoice not found',
-              message:
-                  'This bill is not available on this device. Use the cloud search on the invoice history screen.',
+              message: 'This bill is not available on this device. Use the cloud search on the invoice history screen.',
               icon: Icons.receipt_long_outlined,
             );
           }
@@ -301,8 +354,7 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen> {
               if (document == null) {
                 return const EmptyState(
                   title: 'Invoice data is incomplete',
-                  message:
-                      'The saved seller or buyer snapshot is missing, so a document cannot be generated. No fake invoice is created.',
+                  message: 'The saved seller or buyer snapshot is missing, so a document cannot be generated. No fake invoice is created.',
                   icon: Icons.error_outline,
                 );
               }
@@ -404,7 +456,101 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen> {
     }
   }
 
-  Future<void> _print(InvoiceDocument document) => _exporter.printA4(document);
+  Future<void> _print(InvoiceDocument document) async {
+    final settings = await loadPrintSettings(ref);
+    await _exporter.printWithSettings(document, settings);
+  }
+
+  /// Converts an estimate or quotation into a tax invoice.
+  Future<void> _convertToInvoice() async {
+    final sale = await ref
+        .read(salesRepositoryProvider)
+        .saleById(widget.saleId);
+    if (sale == null || !mounted) return;
+    var location = const StockLocation();
+    final paid = TextEditingController();
+    var method = 'cash';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setLocal) => AlertDialog(
+          title: Text('Convert ${sale.invoiceNumber} to invoice'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                StockLocationDropdown(
+                  value: location,
+                  label: 'Take stock from',
+                  onChanged: (value) => setLocal(() => location = value),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: paid,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Amount received now (optional)',
+                    prefixText: '₹ ',
+                  ),
+                ),
+                const SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  initialValue: method,
+                  decoration: const InputDecoration(
+                    labelText: 'Payment method',
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'cash', child: Text('Cash')),
+                    DropdownMenuItem(value: 'upi', child: Text('UPI')),
+                    DropdownMenuItem(
+                      value: 'bank',
+                      child: Text('Bank transfer'),
+                    ),
+                    DropdownMenuItem(value: 'credit', child: Text('Credit')),
+                  ],
+                  onChanged: (value) =>
+                      setLocal(() => method = value ?? method),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Create invoice'),
+            ),
+          ],
+        ),
+      ),
+    );
+    final amount = Money.tryParseRupees(paid.text) ?? 0;
+    paid.dispose();
+    if (confirmed != true || !mounted) return;
+    setState(() => _busy = true);
+    try {
+      final result = await ref
+          .read(salesRepositoryProvider)
+          .convertToInvoice(
+            widget.saleId,
+            storeId: location.storeId,
+            godownId: location.godownId,
+            amountPaidPaise: amount,
+            paymentMethod: method,
+          );
+      ref.invalidate(recentInvoicesProvider);
+      if (mounted) context.pushReplacement('/invoices/${result.saleId}');
+    } catch (error) {
+      if (mounted) showActionMessage(context, error.toString());
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   Future<void> _share(InvoiceDocument document) => _exporter.sharePdf(document);
 
@@ -593,5 +739,33 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen> {
     } catch (error) {
       if (mounted) showActionMessage(context, error.toString());
     }
+  }
+}
+
+/// Opens an invoice by its number, checking this device first and then the
+/// cloud. Shows a message when it can not be found.
+Future<void> openInvoiceByNumber(
+  BuildContext context,
+  WidgetRef ref,
+  String number,
+) async {
+  try {
+    final repository = ref.read(salesRepositoryProvider);
+    final local = await repository.saleByNumber(number);
+    if (local != null) {
+      if (context.mounted) context.push('/invoices/${local.id}');
+      return;
+    }
+    final id = await repository.fetchInvoiceFromCloud(number);
+    if (!context.mounted) return;
+    if (id == null) {
+      showActionMessage(context, 'Bill $number was not found');
+    } else {
+      ref.invalidate(invoiceListProvider);
+      ref.invalidate(documentListProvider);
+      context.push('/invoices/$id');
+    }
+  } catch (error) {
+    if (context.mounted) showActionMessage(context, error.toString());
   }
 }

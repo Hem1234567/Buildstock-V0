@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:buildstock/app/theme/app_theme.dart';
 import 'package:buildstock/core/database/app_database.dart';
+import 'package:buildstock/core/database/database_provider.dart';
+import 'package:buildstock/core/export/excel_exporter.dart';
 import 'package:buildstock/core/utils/dates.dart';
 import 'package:buildstock/core/utils/money.dart';
 import 'package:buildstock/core/widgets/async_view.dart';
@@ -40,10 +42,51 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       appBar: AppBar(
         title: const Text('Reports'),
         actions: [
-          IconButton(
-            tooltip: 'Export sales CSV',
-            onPressed: () => _exportSales(invoices.value ?? const []),
+          PopupMenuButton<String>(
+            tooltip: 'Export',
             icon: const Icon(Icons.file_download_outlined),
+            onSelected: (value) {
+              switch (value) {
+                case 'csv':
+                  _exportSales(invoices.value ?? const []);
+                case 'xlsx_month':
+                  _exportExcel(monthOnly: true);
+                case 'xlsx_all':
+                  _exportExcel(monthOnly: false);
+                case 'xlsx_stock':
+                  _exportExcel(
+                    monthOnly: false,
+                    sheets: {ReportSheet.stock},
+                    name: 'buildstock-stock',
+                  );
+                case 'xlsx_dues':
+                  _exportExcel(
+                    monthOnly: false,
+                    sheets: {
+                      ReportSheet.customerDues,
+                      ReportSheet.supplierPayables,
+                    },
+                    name: 'buildstock-balances',
+                  );
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'xlsx_month',
+                child: Text('Excel: this month (all sheets)'),
+              ),
+              PopupMenuItem(
+                value: 'xlsx_all',
+                child: Text('Excel: all time (all sheets)'),
+              ),
+              PopupMenuItem(value: 'xlsx_stock', child: Text('Excel: stock')),
+              PopupMenuItem(
+                value: 'xlsx_dues',
+                child: Text('Excel: customer and supplier balances'),
+              ),
+              PopupMenuDivider(),
+              PopupMenuItem(value: 'csv', child: Text('Sales CSV')),
+            ],
           ),
         ],
       ),
@@ -253,6 +296,37 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
+  Future<void> _exportExcel({
+    required bool monthOnly,
+    Set<ReportSheet>? sheets,
+    String? name,
+  }) async {
+    try {
+      final from = monthOnly ? AppDate.startOfMonth(_month) : null;
+      final to = monthOnly ? AppDate.endOfMonth(_month) : null;
+      final bytes = await ReportDataSource(ref.read(databaseProvider)).workbook(
+        sheets: sheets ?? ReportSheet.values.toSet(),
+        from: from,
+        to: to,
+        customerBalances:
+            ref.read(customerBalancesProvider).value ?? const <String, int>{},
+        supplierBalances:
+            ref.read(supplierBalancesProvider).value ?? const <String, int>{},
+      );
+      final fileName =
+          name ??
+          (monthOnly
+              ? 'buildstock-report-${AppDate.isoDate(_month).substring(0, 7)}'
+              : 'buildstock-report-all');
+      final uri = await ExcelWorkbook.save(fileName, bytes);
+      if (mounted && uri != null) {
+        showActionMessage(context, 'Exported to $uri');
+      }
+    } catch (error) {
+      if (mounted) showActionMessage(context, error.toString());
+    }
+  }
+
   Future<void> _exportSales(List<SaleRow> invoices) async {
     final lines = <String>[
       'Bill No,Date,Status,Subtotal,Discount,Taxable,CGST,SGST,IGST,Grand Total,Paid,Balance',
@@ -309,10 +383,8 @@ class _Metric extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Text(
               value,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: color,
-              ),
+              style: Theme.of(context).textTheme.titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w700, color: color),
             ),
           ),
         ],

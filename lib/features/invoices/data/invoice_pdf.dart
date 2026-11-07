@@ -8,6 +8,7 @@ import 'package:buildstock/core/qr/upi_qr.dart';
 import 'package:buildstock/core/utils/dates.dart';
 import 'package:buildstock/core/utils/money.dart';
 import 'package:buildstock/core/utils/quantity.dart';
+import 'package:buildstock/core/scanner/invoice_qr.dart';
 import 'package:buildstock/features/invoices/domain/invoice_document.dart';
 
 enum ThermalWidth { mm58, mm80 }
@@ -145,7 +146,7 @@ class InvoicePdfBuilder {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  doc.isEstimate ? 'ESTIMATE' : 'BILL',
+                  doc.heading,
                   style: pw.TextStyle(
                     fontSize: 9,
                     fontWeight: pw.FontWeight.bold,
@@ -240,6 +241,23 @@ class InvoicePdfBuilder {
                 child: pw.Text(
                   'Scan to pay · ${Money.format(doc.balanceDuePaise)}',
                   style: const pw.TextStyle(fontSize: 6),
+                ),
+              ),
+            ],
+            if (!doc.isCancelled && doc.number.isNotEmpty) ...[
+              pw.SizedBox(height: 3),
+              pw.Center(
+                child: pw.BarcodeWidget(
+                  barcode: pw.Barcode.qrCode(),
+                  data: InvoiceQr.encode(doc.number),
+                  width: 22 * PdfPageFormat.mm,
+                  height: 22 * PdfPageFormat.mm,
+                ),
+              ),
+              pw.Center(
+                child: pw.Text(
+                  'Scan to open this bill',
+                  style: const pw.TextStyle(fontSize: 5.5),
                 ),
               ),
             ],
@@ -641,6 +659,21 @@ class InvoicePdfBuilder {
             style: const pw.TextStyle(fontSize: 8),
           ),
         pw.Spacer(),
+        if (!doc.isCancelled && doc.number.isNotEmpty) ...[
+          pw.Column(
+            children: [
+              pw.BarcodeWidget(
+                barcode: pw.Barcode.qrCode(),
+                data: InvoiceQr.encode(doc.number),
+                width: 52,
+                height: 52,
+              ),
+              pw.SizedBox(height: 2),
+              pw.Text('Scan to open', style: const pw.TextStyle(fontSize: 6)),
+            ],
+          ),
+          pw.Spacer(),
+        ],
         pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [

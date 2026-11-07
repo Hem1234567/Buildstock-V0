@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:buildstock/core/widgets/section_card.dart';
+
 import 'theme/app_theme.dart';
 
 class MoreScreen extends StatelessWidget {
@@ -16,6 +17,7 @@ class MoreScreen extends StatelessWidget {
           ('Products', Icons.inventory_2_outlined, '/products'),
           ('Inventory', Icons.warehouse_outlined, '/inventory'),
           ('Stores & Godowns', Icons.store_mall_directory_outlined, '/stores'),
+          ('Stock Transfers', Icons.swap_horiz, '/transfers'),
           ('Categories & Units', Icons.category_outlined, '/categories'),
         ],
       ),
@@ -33,6 +35,14 @@ class MoreScreen extends StatelessWidget {
         [
           ('Purchases', Icons.shopping_cart_outlined, '/purchases'),
           ('Invoices', Icons.receipt_long_outlined, '/invoices'),
+          ('Estimates', Icons.description_outlined, '/estimates'),
+          ('Quotations', Icons.request_quote_outlined, '/quotations'),
+          ('Customer Orders', Icons.assignment_outlined, '/orders'),
+          (
+            'Returns & Credit/Debit Notes',
+            Icons.assignment_return_outlined,
+            '/returns',
+          ),
           ('Deliveries', Icons.delivery_dining_outlined, '/deliveries'),
           ('Attendance', Icons.fact_check_outlined, '/attendance'),
           ('Salary', Icons.payments_outlined, '/salary'),
@@ -44,7 +54,10 @@ class MoreScreen extends StatelessWidget {
         'Business',
         [
           ('Reports', Icons.bar_chart_outlined, '/reports'),
+          ('Search Everything', Icons.search, '/search'),
           ('Business Settings', Icons.settings_outlined, '/settings'),
+          ('Team & Devices', Icons.groups_outlined, '/settings/team'),
+          ('Backup & Restore', Icons.backup_outlined, '/settings/backup'),
           ('Sync Center', Icons.cloud_outlined, '/sync'),
         ],
       ),

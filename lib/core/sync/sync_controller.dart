@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:buildstock/core/database/database_provider.dart';
 import 'package:buildstock/core/security/permissions.dart';
+
 import 'firestore_backend.dart';
 import 'sync_engine.dart';
+
+import 'package:buildstock/features/team/data/team_repository.dart';
 
 class SyncUiState {
   const SyncUiState({this.running = false, this.lastReport, this.error});
@@ -64,6 +67,17 @@ class SyncController extends Notifier<SyncUiState> {
         shopId: services.identity.shopId,
       );
 
+      // The owner can disable a device from Team & devices. A disabled
+      // device keeps working offline but does not exchange data.
+      final team = TeamRepository(services);
+      if (await team.isThisDeviceDisabled()) {
+        state = state.copyWith(
+          running: false,
+          error: 'This device was disabled by the shop owner. Ask the owner to enable it in Team & devices.',
+        );
+        return;
+      }
+
       // The owner's first online sync provisions the shop and membership if
       // the earlier bootstrap attempt happened while offline.
       if (services.identity.shopId == auth.runtime.uid) {
@@ -86,7 +100,10 @@ class SyncController extends Notifier<SyncUiState> {
         deviceCode: services.identity.deviceCode,
         platform: defaultTargetPlatform.name,
         appVersion: '1.0.0',
+        userId: auth.runtime.uid,
+        userName: services.identity.displayName ?? services.identity.email,
       );
+      await team.refreshMembership();
 
       final engine = SyncEngine(
         db: services.db,

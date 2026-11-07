@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -139,11 +140,18 @@ class SessionService {
         db.users,
       )..where((t) => t.id.equals(user.uid))).getSingleOrNull();
       role = membership?.role ?? UserRole.staff;
-      permissions =
-          (membership == null
-                  ? RolePermissions.forRole(role)
-                  : RolePermissions.forRole(role))
-              .toSet();
+      permissions = RolePermissions.forRole(role).toSet();
+      if (membership != null) {
+        // The owner can tune a member's permissions; they are stored with the
+        // membership and override the role defaults.
+        try {
+          final stored = jsonDecode(membership.permissionsJson);
+          if (stored is List && stored.isNotEmpty) {
+            permissions = {for (final item in stored) item.toString()};
+          }
+        } catch (_) {}
+        if (!membership.active) permissions = <String>{};
+      }
     }
 
     return AppIdentity(

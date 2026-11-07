@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 
 import 'package:printing/printing.dart';
 
+import 'package:buildstock/core/printing/thermal_printer_service.dart';
 import 'package:buildstock/features/invoices/data/invoice_pdf.dart';
 import 'package:buildstock/features/invoices/domain/invoice_document.dart';
 
@@ -35,6 +36,27 @@ class InvoiceExporter {
       onLayout: (_) async => bytes,
       name: '${document.number}-thermal.pdf',
     );
+  }
+
+  /// Prints through the saved printer choice: straight to a network,
+  /// Bluetooth or USB thermal printer, or through the Android print dialog.
+  Future<void> printWithSettings(
+    InvoiceDocument document,
+    PrintSettings settings,
+  ) async {
+    if (!settings.isThermalPaper) {
+      await printA4(document);
+      return;
+    }
+    final width = settings.paper == '58'
+        ? ThermalWidth.mm58
+        : ThermalWidth.mm80;
+    if (settings.isDirect) {
+      final bytes = await thermal(document, width);
+      await const ThermalPrinterService().printPdf(settings, bytes);
+      return;
+    }
+    await printThermal(document, width);
   }
 
   Future<void> sharePdf(InvoiceDocument document) async {

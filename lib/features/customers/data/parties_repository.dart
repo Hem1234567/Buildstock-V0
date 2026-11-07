@@ -257,9 +257,12 @@ class PartiesRepository {
             GROUP BY party_id
           ) p ON p.party_id = c.id
           LEFT JOIN (
-            SELECT party_id, SUM(amount_paise) AS total
+            SELECT party_id,
+              SUM(CASE WHEN type = 'debit_note' THEN -amount_paise
+                       ELSE amount_paise END) AS total
             FROM returns
-            WHERE type = 'sale_return' AND status = 'finalized'
+            WHERE type IN ('sale_return', 'credit_note', 'debit_note')
+              AND status = 'finalized'
             GROUP BY party_id
           ) r ON r.party_id = c.id
           ''',
@@ -285,8 +288,12 @@ class PartiesRepository {
                 AND document_type = 'invoice') -
             (SELECT COALESCE(SUM(amount_paise), 0) FROM payments
               WHERE party_id = ? AND party_type = 'customer' AND direction = 'in') -
-            (SELECT COALESCE(SUM(amount_paise), 0) FROM returns
-              WHERE party_id = ? AND type = 'sale_return' AND status = 'finalized')
+            (SELECT COALESCE(SUM(CASE WHEN type = 'debit_note'
+                                      THEN -amount_paise ELSE amount_paise END), 0)
+              FROM returns
+              WHERE party_id = ?
+                AND type IN ('sale_return', 'credit_note', 'debit_note')
+                AND status = 'finalized')
             AS outstanding
           ''',
           variables: [
@@ -357,7 +364,11 @@ class PartiesRepository {
         await (db.select(db.returns)..where(
               (t) =>
                   t.partyId.equals(customerId) &
-                  t.type.equals(ReturnType.saleReturn) &
+                  t.type.isIn([
+                    ReturnType.saleReturn,
+                    ReturnType.creditNote,
+                    ReturnType.debitNote,
+                  ]) &
                   t.status.equals(DocumentStatus.finalized),
             ))
             .get();
@@ -365,10 +376,19 @@ class PartiesRepository {
       entries.add(
         LedgerEntry(
           date: document.createdAt,
-          title: 'Sales return ${document.returnNumber}',
+          title: switch (document.type) {
+            ReturnType.creditNote => 'Credit note ${document.returnNumber}',
+            ReturnType.debitNote => 'Debit note ${document.returnNumber}',
+            _ => 'Sales return ${document.returnNumber}',
+          },
           kind: LedgerKind.returnDoc,
           reference: document.id,
-          creditPaise: document.amountPaise,
+          debitPaise: document.type == ReturnType.debitNote
+              ? document.amountPaise
+              : 0,
+          creditPaise: document.type == ReturnType.debitNote
+              ? 0
+              : document.amountPaise,
         ),
       );
     }
@@ -482,9 +502,13 @@ class PartiesRepository {
             GROUP BY party_id
           ) pay ON pay.party_id = s.id
           LEFT JOIN (
-            SELECT party_id, SUM(amount_paise) AS total
+            SELECT party_id,
+              SUM(CASE WHEN type = 'purchase_credit_note' THEN -amount_paise
+                       ELSE amount_paise END) AS total
             FROM returns
-            WHERE type = 'purchase_return' AND status = 'finalized'
+            WHERE type IN ('purchase_return', 'purchase_debit_note',
+                           'purchase_credit_note')
+              AND status = 'finalized'
             GROUP BY party_id
           ) r ON r.party_id = s.id
           ''',

@@ -152,7 +152,9 @@ class InvoiceDocument {
 
   bool get isEstimate => documentType != DocumentType.invoice;
   bool get isCancelled => status == DocumentStatus.cancelled;
-  String get heading => isEstimate ? 'ESTIMATE' : 'BILL';
+  String get heading => documentType == DocumentType.quotation
+      ? 'QUOTATION'
+      : (isEstimate ? 'ESTIMATE' : 'BILL');
   String get dateLabel => AppDate.display(date);
   String get amountInWords => Money.inWords(grandTotalPaise);
   int get totalQuantityMilli =>

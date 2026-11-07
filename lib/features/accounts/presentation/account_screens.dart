@@ -99,8 +99,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen>
                     if (rows.isEmpty) {
                       return const EmptyState(
                         title: 'No transactions',
-                        message:
-                            'Sales, purchases, payments and expenses for this period appear here.',
+                        message: 'Sales, purchases, payments and expenses for this period appear here.',
                         icon: Icons.menu_book_outlined,
                       );
                     }
@@ -164,8 +163,7 @@ class _ExpenseList extends ConsumerWidget {
           if (rows.isEmpty) {
             return const EmptyState(
               title: 'No expenses recorded',
-              message:
-                  'Rent, fuel, salaries and other real business costs appear here.',
+              message: 'Rent, fuel, salaries and other real business costs appear here.',
               icon: Icons.receipt_outlined,
             );
           }

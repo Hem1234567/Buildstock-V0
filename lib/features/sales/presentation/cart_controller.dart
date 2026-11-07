@@ -50,6 +50,7 @@ class CartState {
     this.customerId,
     this.amountPaidPaise = 0,
     this.paymentMethod = PaymentMethods.cash,
+    this.sourceOrderId,
   });
 
   final List<CartLine> lines;
@@ -59,6 +60,10 @@ class CartState {
   final String? customerId;
   final int amountPaidPaise;
   final String paymentMethod;
+
+  /// Set when the cart was filled from a customer order, so the order can be
+  /// marked invoiced after checkout.
+  final String? sourceOrderId;
 
   bool get isEmpty => lines.isEmpty;
   int get itemCount => lines.length;
@@ -94,6 +99,8 @@ class CartState {
     bool clearCustomer = false,
     int? amountPaidPaise,
     String? paymentMethod,
+    String? sourceOrderId,
+    bool clearSourceOrder = false,
   }) => CartState(
     lines: lines ?? this.lines,
     saleType: saleType ?? this.saleType,
@@ -102,6 +109,9 @@ class CartState {
     customerId: clearCustomer ? null : (customerId ?? this.customerId),
     amountPaidPaise: amountPaidPaise ?? this.amountPaidPaise,
     paymentMethod: paymentMethod ?? this.paymentMethod,
+    sourceOrderId: clearSourceOrder
+        ? null
+        : (sourceOrderId ?? this.sourceOrderId),
   );
 }
 
@@ -122,6 +132,22 @@ class CartController extends Notifier<CartState> {
   }
 
   void setGst(bool value) => state = state.copyWith(isGst: value);
+
+  /// Replaces the cart with the lines of a customer order.
+  void loadFromOrder({
+    required String orderId,
+    required String? customerId,
+    required List<CartLine> lines,
+  }) {
+    state = CartState(
+      lines: lines,
+      customerId: customerId,
+      sourceOrderId: orderId,
+    );
+  }
+
+  /// Adds a scanned product, or one more unit of it.
+  void addScanned(ProductRow product) => addProduct(product);
 
   void addProduct(ProductRow product) {
     final existingIndex = state.lines.indexWhere(

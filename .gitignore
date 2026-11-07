@@ -52,3 +52,7 @@ android/app/google-services.json
 *.env
 .drift/
 android/hs_err_pid*.log
+
+# Local logs
+analyze*.txt
+l10n_untranslated.json

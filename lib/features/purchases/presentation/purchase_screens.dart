@@ -5,7 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:buildstock/app/theme/app_theme.dart';
 
 import 'package:buildstock/core/domain/enums.dart';
+import 'package:buildstock/core/scanner/barcode_scanner_screen.dart';
 import 'package:buildstock/core/utils/dates.dart';
+import 'package:buildstock/core/widgets/photo_field.dart';
+import 'package:buildstock/features/stores/data/transfer_repository.dart';
+import 'package:buildstock/features/stores/presentation/stock_location_picker.dart';
 import 'package:buildstock/core/utils/money.dart';
 import 'package:buildstock/core/utils/quantity.dart';
 import 'package:buildstock/core/widgets/async_view.dart';
@@ -64,8 +68,7 @@ class _PurchaseListScreenState extends ConsumerState<PurchaseListScreen> {
                 if (rows.isEmpty) {
                   return const EmptyState(
                     title: 'No purchases yet',
-                    message:
-                        'Record stock received from suppliers. Stock only increases through real purchase entries.',
+                    message: 'Record stock received from suppliers. Stock only increases through real purchase entries.',
                     icon: Icons.shopping_cart_outlined,
                   );
                 }
@@ -85,9 +88,9 @@ class _PurchaseListScreenState extends ConsumerState<PurchaseListScreen> {
                               children: [
                                 Text(
                                   purchase.purchaseNumber,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium,
                                 ),
                                 Text(
                                   '${names[purchase.supplierId] ?? 'Supplier'} · ${AppDate.display(purchase.purchaseDate)}',
@@ -136,6 +139,8 @@ class _PurchaseFormScreenState extends ConsumerState<PurchaseFormScreen> {
   final _notes = TextEditingController();
   final List<InvoiceLine> _lines = [];
   String? _supplierId;
+  StockLocation _location = const StockLocation();
+  String? _billPhoto;
   String _method = PaymentMethods.cash;
   bool _saving = false;
   String? _error;
@@ -194,6 +199,22 @@ class _PurchaseFormScreenState extends ConsumerState<PurchaseFormScreen> {
                   onChanged: (value) => setState(() => _supplierId = value),
                 ),
                 const SizedBox(height: 10),
+                StockLocationDropdown(
+                  value: _location,
+                  label: 'Receive stock into',
+                  autoLabel: 'No specific location',
+                  onChanged: (value) => setState(() => _location = value),
+                ),
+                const SizedBox(height: 10),
+                PhotoPickerField(
+                  label: 'Supplier bill photo',
+                  helper: 'Optional. Stored with the purchase.',
+                  ownerType: 'purchase',
+                  role: 'attachment',
+                  initialRef: _billPhoto,
+                  onChanged: (value) => _billPhoto = value,
+                ),
+                const SizedBox(height: 10),
                 TextField(
                   controller: _supplierInvoice,
                   decoration: const InputDecoration(
@@ -208,6 +229,17 @@ class _PurchaseFormScreenState extends ConsumerState<PurchaseFormScreen> {
             title: 'Items',
             actionLabel: 'Add item',
             onAction: _addItem,
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: OutlinedButton.icon(
+                onPressed: _scanItem,
+                icon: const Icon(Icons.qr_code_scanner),
+                label: const Text('Scan item barcode'),
+              ),
+            ),
           ),
           SectionCard(
             padding: const EdgeInsets.symmetric(vertical: 4),
@@ -347,6 +379,54 @@ class _PurchaseFormScreenState extends ConsumerState<PurchaseFormScreen> {
     );
   }
 
+  /// Scans a product barcode and adds one unit at its last purchase price.
+  Future<void> _scanItem() async {
+    final code = await BarcodeScannerScreen.open(
+      context,
+      title: 'Scan item',
+      hint: 'Scan the product barcode',
+    );
+    if (code == null || !mounted) return;
+    final product = await ref
+        .read(catalogRepositoryProvider)
+        .productByCode(code);
+    if (!mounted) return;
+    if (product == null) {
+      showActionMessage(context, 'No product found for $code');
+      return;
+    }
+    setState(() {
+      final index = _lines.indexWhere((line) => line.productId == product.id);
+      if (index >= 0) {
+        final line = _lines[index];
+        _lines[index] = InvoiceLine(
+          productId: line.productId,
+          name: line.name,
+          sku: line.sku,
+          hsnCode: line.hsnCode,
+          unit: line.unit,
+          quantityMilli: line.quantityMilli + 1000,
+          unitPricePaise: line.unitPricePaise,
+          taxRateBps: line.taxRateBps,
+        );
+      } else {
+        _lines.add(
+          InvoiceLine(
+            productId: product.id,
+            name: product.name,
+            sku: product.sku,
+            hsnCode: product.hsnCode,
+            unit: 'Nos',
+            quantityMilli: 1000,
+            unitPricePaise: product.purchasePricePaise,
+            taxRateBps: product.gstRateBps,
+          ),
+        );
+      }
+    });
+    showActionMessage(context, 'Added ${product.name}');
+  }
+
   Future<void> _addItem() async {
     final products = ref.read(productsStreamProvider('')).value ?? const [];
     if (products.isEmpty) {
@@ -468,6 +548,9 @@ class _PurchaseFormScreenState extends ConsumerState<PurchaseFormScreen> {
             PurchaseInput(
               lines: _lines,
               supplierId: _supplierId,
+              storeId: _location.storeId,
+              godownId: _location.godownId,
+              attachments: [if (_billPhoto != null) _billPhoto!],
               supplierInvoiceNumber: _supplierInvoice.text.trim(),
               amountPaidPaise: Money.tryParseRupees(_paid.text) ?? 0,
               paymentMethod: _method,

@@ -59,8 +59,7 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
                 if (rows.isEmpty) {
                   return const EmptyState(
                     title: 'No customers yet',
-                    message:
-                        'Add real customers to track credit and deliveries. Walk-in billing works without a saved customer.',
+                    message: 'Add real customers to track credit and deliveries. Walk-in billing works without a saved customer.',
                     icon: Icons.people_outline,
                   );
                 }
@@ -96,9 +95,9 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
                               children: [
                                 Text(
                                   customer.name,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium,
                                 ),
                                 Text(
                                   [
@@ -233,6 +232,13 @@ class CustomerFormScreen extends ConsumerWidget {
           initial: customer?.openingBalancePaise,
         ),
         AppField(
+          key: 'photo',
+          label: 'Customer photo',
+          type: AppFieldType.photo,
+          photoOwner: 'customer',
+          initial: customer?.photoRef,
+        ),
+        AppField(
           key: 'notes',
           label: 'Notes',
           type: AppFieldType.multiline,
@@ -259,6 +265,7 @@ class CustomerFormScreen extends ConsumerWidget {
                 customerType: values['customerType'] as String? ?? 'retail',
                 creditLimitPaise: values['creditLimit'] as int? ?? 0,
                 openingBalancePaise: values['openingBalance'] as int? ?? 0,
+                photoRef: values['photo'] as String?,
                 notes: values['notes'] as String? ?? '',
               ),
               existingId: customerId,
@@ -382,8 +389,7 @@ class CustomerDetailScreen extends ConsumerWidget {
                     return const SectionCard(
                       child: EmptyState(
                         title: 'No transactions',
-                        message:
-                            'Invoices and payments for this customer will appear here.',
+                        message: 'Invoices and payments for this customer will appear here.',
                         compact: true,
                       ),
                     );
@@ -546,8 +552,7 @@ class _SupplierListScreenState extends ConsumerState<SupplierListScreen> {
                 if (rows.isEmpty) {
                   return const EmptyState(
                     title: 'No suppliers yet',
-                    message:
-                        'Add the suppliers you actually buy from to record purchases and payables.',
+                    message: 'Add the suppliers you actually buy from to record purchases and payables.',
                     icon: Icons.local_shipping_outlined,
                   );
                 }
@@ -569,9 +574,9 @@ class _SupplierListScreenState extends ConsumerState<SupplierListScreen> {
                               children: [
                                 Text(
                                   supplier.name,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium,
                                 ),
                                 Text(
                                   supplier.phone,
@@ -674,6 +679,13 @@ class SupplierFormScreen extends ConsumerWidget {
           initial: supplier?.openingBalancePaise,
         ),
         AppField(
+          key: 'photo',
+          label: 'Supplier photo',
+          type: AppFieldType.photo,
+          photoOwner: 'supplier',
+          initial: supplier?.photoRef,
+        ),
+        AppField(
           key: 'notes',
           label: 'Notes',
           type: AppFieldType.multiline,
@@ -696,6 +708,7 @@ class SupplierFormScreen extends ConsumerWidget {
                 gstin: values['gstin'] as String? ?? '',
                 pan: values['pan'] as String? ?? '',
                 openingBalancePaise: values['openingBalance'] as int? ?? 0,
+                photoRef: values['photo'] as String?,
                 notes: values['notes'] as String? ?? '',
               ),
               existingId: supplierId,

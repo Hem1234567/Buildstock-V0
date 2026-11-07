@@ -52,8 +52,7 @@ class _StoreList extends StatelessWidget {
           if (rows.isEmpty) {
             return const EmptyState(
               title: 'No stores yet',
-              message:
-                  'Add each real shop location. Stock and staff can then be assigned per store.',
+              message: 'Add each real shop location. Stock and staff can then be assigned per store.',
               icon: Icons.store_mall_directory_outlined,
             );
           }
@@ -120,8 +119,7 @@ class _GodownList extends StatelessWidget {
           if (rows.isEmpty) {
             return const EmptyState(
               title: 'No godowns yet',
-              message:
-                  'Add storage locations under a store to track stock by godown.',
+              message: 'Add storage locations under a store to track stock by godown.',
               icon: Icons.warehouse_outlined,
             );
           }

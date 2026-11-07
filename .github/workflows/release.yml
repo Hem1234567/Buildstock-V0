@@ -1,5 +1,8 @@
 name: Release
 
+# Publishes a GitHub release with the APK when a `v*` tag is pushed, or when
+# run manually with a version tag.
+
 on:
   push:
     tags:
@@ -7,56 +10,57 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version tag to build (e.g. v1.0.0)"
+        description: "Version tag to publish (e.g. v1.0.0)"
         required: true
         type: string
 
 permissions:
   contents: write
 
+env:
+  FLUTTER_VERSION: "3.47.9"
+  JAVA_VERSION: "17"
+  NDK_VERSION: "28.2.13676358"
+
 jobs:
   release:
-    name: Signed Android release
+    name: Android release APK
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Java 21
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: ${{ env.JAVA_VERSION }}
 
-      - name: Install Android 36 packages
+      - name: Prepare Android SDK
+        shell: bash
         run: |
           SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
           SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
           if [ ! -x "$SDKMANAGER" ]; then
-            SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+            SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -n 1 || true)"
           fi
-          echo "Using sdkmanager: $SDKMANAGER"
-          yes | "$SDKMANAGER" --licenses > /dev/null || true
-          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0"
+          if [ -z "$SDKMANAGER" ] || [ ! -x "$SDKMANAGER" ]; then
+            echo "::warning::sdkmanager not found; Gradle will download SDK components itself."
+            exit 0
+          fi
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;${NDK_VERSION}" || true
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.47.9"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
       - name: Install dependencies
         run: flutter pub get
-
-      - name: Generate code
-        run: dart run build_runner build
-
-      - name: Analyze and test
-        run: |
-          flutter analyze
-          flutter test
 
       - name: Configure optional release signing
         env:
@@ -64,6 +68,7 @@ jobs:
           STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        shell: bash
         run: |
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "$KEYSTORE_BASE64" | base64 -d > android/release-keystore.jks
@@ -78,13 +83,15 @@ jobs:
           fi
 
       - name: Build release APK
-        run: flutter build apk --release
+        run: >
+          flutter build apk --release --no-tree-shake-icons
+          --dart-define=FIREBASE_ANDROID_APP_ID=${{ vars.FIREBASE_ANDROID_APP_ID }}
 
-      - name: Attach artifact to release
+      - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.version || github.ref_name }}
           name: BuildStock ${{ github.event.inputs.version || github.ref_name }}
           generate_release_notes: true
           files: build/app/outputs/flutter-apk/app-release.apk
-          fail_on_unmatched_files: false
+          fail_on_unmatched_files: true

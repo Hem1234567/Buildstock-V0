@@ -1,50 +1,70 @@
 # BuildStock — Vijay Balaji Agency
 
-[![CI](https://github.com/Hem1234567/Inventory-management-System-bala/actions/workflows/ci.yml/badge.svg)](https://github.com/Hem1234567/Inventory-management-System-bala/actions/workflows/ci.yml)
+[![Build Android APK](https://github.com/Hem1234567/Inventory-management-System-bala/actions/workflows/ci.yml/badge.svg)](https://github.com/Hem1234567/Inventory-management-System-bala/actions/workflows/ci.yml)
 
-Repository: **Inventory-management-System-bala** — every push runs the GitHub Actions verification workflow (format, analyze, tests, APK).
+Offline-first inventory, billing and accounting for a building-materials dealer
+(cement, sand, jelly, gravel, blocks) — retail and wholesale, GST and non-GST,
+several godowns and several phones.
 
-Offline-first building-materials management and billing for **Vijay Balaji Agency**, Chennai.
-Flutter (Android) · Riverpod · GoRouter · Drift/SQLite · Firebase Auth + Cloud Firestore.
+**Flutter (Android) · Riverpod · GoRouter · Drift/SQLite · Firebase Auth + Cloud Firestore**
 
-> The application never ships sample products, customers, invoices or statistics.
-> Every dashboard figure and document is derived from records the business enters.
+> The app ships with no sample products, customers, invoices or statistics.
+> Every figure and document is derived from records the business enters.
 
 ---
 
-## 1. What is implemented
+## Contents
 
-| Area | Status |
+1. [Features](#1-features)
+2. [Download the APK](#2-download-the-apk)
+3. [Architecture](#3-architecture)
+4. [Feature guide](#4-feature-guide)
+5. [Firebase setup](#5-firebase-setup)
+6. [Build, CI and release](#6-build-ci-and-release)
+7. [Testing](#7-testing)
+8. [Project conventions](#8-project-conventions)
+9. [Limitations and notes](#9-limitations-and-notes)
+
+---
+
+## 1. Features
+
+| Area | What you get |
 | --- | --- |
-| Business profile, logo/signature references, UPI ID, invoice prefix | Implemented |
-| Products, categories, brands, units, SKU/barcode, GST rate, price lists | Implemented |
-| Inventory ledger, stock projection, adjustments, low-stock detection | Implemented |
-| Stores and godowns | Implemented (transfers schema present, transfer UI pending) |
-| Customers/suppliers, balances, ledgers, credit limits | Implemented |
-| Retail/wholesale billing, GST/non-GST, discounts, partial payments | Implemented |
-| Exact Vijay Balaji Agency A4 estimate/bill renderer | Implemented |
-| Invoice preview, structured snapshots, cloud retrieval by bill number | Implemented |
-| PDF download, print, share, PNG image export | Implemented |
-| A4, 58 mm and 80 mm thermal PDFs | Implemented |
-| UPI payment QR and invoice reference QR | Implemented (no gateway) |
-| Purchases, supplier payments, stock-in | Implemented |
-| Expenses, cash book, day book, receivables/payables | Implemented |
-| Staff, roles, attendance, payroll generation and salary payments | Implemented |
-| Drivers, vehicles, deliveries, partial delivery, proof metadata | Implemented (assignment/status; photo capture is local-ref based) |
-| Reports (sales, GST, stock value, outstanding, low stock) + CSV export | Implemented |
-| Durable outbox, exponential backoff, idempotent writes, incremental pull | Implemented |
-| Firestore security rules (single file) | Implemented |
-| English + Tamil UI and document font | Implemented |
-| Unit/widget tests (26) | Implemented |
-| Image hosting upload pipeline | **Not wired** — metadata table and local references exist; provider upload is documented as the next step |
-| Stock transfer UI, returns/credit-note UI, quotations UI | Repository/schema present, UI not yet built |
-
-This README states the boundary honestly so a feature is never claimed complete
-when its UI or verification is missing.
+| **Billing** | Retail/wholesale, GST/non-GST, discounts, partial payments, UPI QR (no gateway), A4 bill/estimate in the Vijay Balaji format, 58 mm and 80 mm thermal |
+| **Quotations & estimates** | Create from checkout, validity days, **convert to invoice** (stock leaves the chosen godown, source marked converted) |
+| **Customer orders** | Record what a customer asked for, track status (open → confirmed → ready → delivered), **create an invoice from the order** |
+| **Credit & debit notes** | Customer and supplier notes that change only the party balance; PDF print/share; original bills never edited |
+| **Returns** | Sales and purchase returns with stock and balance effects |
+| **Inventory** | Append-only stock ledger, stores and godowns, **godown choice** in sales, purchases, adjustments and filters, stock transfers |
+| **Barcode & QR** | Camera scanner for billing, purchases, product form and inventory lookup; **scan a bill's QR to open it** |
+| **Photos** | Camera/gallery capture, compression, upload to ImgBB or Cloudinary for products, logo, signature, stamp, customers, suppliers, staff, drivers, supplier bills and **delivery proof** |
+| **Reports** | Sales, GST, stock value, outstanding, low stock; **Excel (.xlsx) and CSV export** |
+| **Alerts** | **Low-stock notifications** (at most once a day per set of products) |
+| **People & payroll** | Staff, drivers, attendance, salary generation and payment, **printable salary slips** |
+| **Search** | **Global search** across products, bills, customers, suppliers, orders, purchases, returns, staff, drivers, deliveries and expenses |
+| **Printing** | Android print dialog **or direct ESC/POS** to network (TCP 9100), Bluetooth and USB thermal printers |
+| **Backup** | **Backup and restore** of all data to a file, plus an automatic daily local backup |
+| **Team** | **Invite users**, roles and permissions, **device management** (enable/disable), join a shop with an invite code |
+| **Sync** | Durable outbox, idempotent writes, incremental pull, conflict detection; Firestore rules enforce roles and immutability |
+| **Languages** | English and Tamil |
 
 ---
 
-## 2. Architecture
+## 2. Download the APK
+
+Every push to GitHub runs **Build Android APK**.
+
+1. Open the repository → **Actions** → the latest *Build Android APK* run.
+2. Download the **buildstock-apk** artifact (a zip containing `BuildStock-v<version>-build<N>.apk`).
+3. Unzip and install on the phone (allow *install unknown apps* once).
+
+Tag a release (`git tag v1.0.0 && git push --tags`) to publish the APK as a GitHub
+release automatically.
+
+---
+
+## 3. Architecture
 
 Feature-first clean architecture:
 
@@ -53,299 +73,257 @@ lib/
   app/                 theme, router, shell, preferences
   core/
     audit/             immutable audit writer
-    database/          Drift schema, migrations, providers
+    backup/            backup & restore service
+    database/          Drift schema (41 tables), migrations, providers
     domain/            shared enums and status strings
     errors/            typed AppFailure
+    export/            Excel workbook builder and report queries
     firebase/          initialization and auth wrapper
-    qr/                UPI and invoice-reference payloads
+    media/             photo capture, compression, upload to image hosts
+    notifications/     low-stock notifier
+    printing/          ESC/POS encoder, thermal printer service
+    qr/ scanner/       UPI payload, invoice QR payload, camera scanner
     security/          permission catalog and role defaults
     session/           device identity and shop binding
     sync/              outbox, backend, engine, local mirror, controller
     utils/             money, quantity, dates, ids, json, validators
     widgets/           design-system components and forms
-  features/            dashboard, sales, invoices, products, inventory,
-                       customers, suppliers, purchases, accounts, stores,
-                       staff, drivers, deliveries, reports, settings, sync
+  features/            dashboard, sales, invoices, orders, products, inventory,
+                       customers, suppliers, purchases, returns, accounts,
+                       stores, staff, deliveries, reports, search, team,
+                       settings, sync
   l10n/                English and Tamil ARB files
+android/.../MainActivity.kt   Bluetooth + USB printer channel
 ```
 
 Rules enforced in code:
 
-* UI never imports `cloud_firestore`; only `FirestoreSyncBackend` and the
-  invoice-retrieval path in `SalesRepository` touch it.
-* Money is **integer paise**; quantities are **integer milli-units**; tax rates
+* The UI never imports `cloud_firestore`. Only `FirestoreSyncBackend`, the
+  invoice-retrieval path and the team/invite repository (access control) touch it.
+* Money is **integer paise**, quantities are **integer milli-units**, tax rates
   are **basis points**. No business amount is a `double`.
 * Every business write and its outbox entry share one SQLite transaction.
-* Finalized invoices are immutable. Corrections use cancellation and returns.
+* Finalized invoices are immutable. Corrections use cancellation, returns and
+  credit/debit notes.
 * Stock is an append-only ledger; the `inventories` row is a projection.
 * Firestore rules independently enforce roles, immutability and idempotency.
-
-### Local database
-
-Drift, schema version **1**, 41 tables, indices on search fields, foreign keys
-enabled, WAL journal mode. Migrations are sequential (`_runMigration`) and new
-versions must append a step rather than edit an old one.
-
-Configuration seeded on first launch (editable, not business records):
-
-* Units: Nos, Bag, Ton, Cft, Cum, Kg, Load, Ltr, Sqft, Pc
-* Categories: Cement, M-Sand, Sand, Jelly, Blue Metal, Bricks, AAC Blocks, Other
-* Expense categories: Rent, Electricity, Transport, Vehicle Fuel, Vehicle
-  Maintenance, Staff Salary, Driver Salary, Telephone, Office Expenses,
-  Loading and Unloading, Other
-
-No product, customer, supplier, staff, invoice or payment is seeded.
-
-### Invoice snapshots
-
-`Sales` stores `sellerSnapshotJson`, `buyerSnapshotJson` and per-line product
-name/SKU/HSN/unit/rate/tax snapshots. The document is always regenerated from
-these snapshots, so changing a product price or the business profile cannot
-alter an issued bill.
-
-Invoice numbers are device-aware:
-`VBA-2026-DEVXXX-000001`, with the sequence scoped by document type, device code
-and year in `number_sequences` inside the same transaction as the invoice.
+* The database schema is unchanged by the features below, so the committed
+  Drift code (`app_database.g.dart`) stays valid and CI does not need
+  `build_runner`.
 
 ### Synchronization
 
-* `sync_queue` is the durable outbox (`pending → syncing → synced | failed |
-  conflict`).
-* Each operation has a stable `operationId`. Documents use client-generated IDs,
-  so retries overwrite the same Firestore document rather than duplicate it.
-* Firestore writes run in a transaction and fail with a conflict when the remote
-  `version` is newer than the local `baseVersion`.
-* Pull is incremental per collection using an ISO `updated_at` cursor.
-* Applying a remote document never overwrites an entity with a pending local
-  operation; it is marked `conflict` and shown in Sync Center.
-* Retry uses 30 s → 2 m → 8 m → 30 m → 2 h → 6 h backoff.
-* Connectivity, app start and app resume trigger a run; connectivity alone is
-  never treated as proof that Firestore is reachable.
+* `sync_queue` is the durable outbox (`pending → syncing → synced | failed | conflict`).
+* Documents use client-generated IDs, so a retried operation overwrites the same
+  Firestore document instead of duplicating it.
+* Remote writes fail with a conflict when the remote `version` is newer than the
+  local `baseVersion`; applying a pull never overwrites an entity that has a
+  pending local change.
+* Backoff: 30 s → 2 m → 8 m → 30 m → 2 h → 6 h. App start, resume and a returning
+  network connection trigger a run.
+* A device switched off in **Team & devices** keeps working offline but stops
+  exchanging data.
 
 ---
 
-## 3. Prerequisites
+## 4. Feature guide
 
-* Flutter **3.47.9** or newer (Dart 3.12) — this project was built and analyzed
-  with that SDK.
-* Android SDK **36** and build-tools 36.
-* JDK **17–24** for Gradle 8.14. JDK 25 is not supported by that Gradle version.
-* A Firebase project (the supplied one is `inventory-management-be3d1`).
+### Barcode and QR scanning
+*Sales → scanner icon* adds products continuously (same product again = +1).
+Also available on the product form (barcode field), purchase form, Inventory
+(find a product's stock) and Search. *Invoices → scanner icon* opens a bill from
+the QR printed on it. Every bill carries a small reference QR containing only
+`buildstock://invoice/<bill number>`; no customer data is encoded. Camera
+permission is requested on first use; you can always type the code instead.
 
-```bash
-flutter --version
-flutter doctor
-```
+### Photos and image hosting
+Photos are compressed on the phone (JPEG, longest side 1280 px) and saved
+locally, so every screen works offline. When a host is configured, they are
+uploaded and the stored reference is swapped for the public URL, which then
+syncs to every device. Firebase Storage is **not** used (Spark plan).
 
----
+*Settings → Photo hosting*: choose **ImgBB** (API key from api.imgbb.com) or
+**Cloudinary** (cloud name + an *unsigned* upload preset). Keys are stored on the
+device only. They can also be supplied at build time:
+`--dart-define=IMGBB_API_KEY=...` or
+`--dart-define=CLOUDINARY_CLOUD_NAME=... --dart-define=CLOUDINARY_UPLOAD_PRESET=...`.
+Pending uploads retry automatically on app start, resume and network return.
 
-## 4. Generate code and run
+### Quotations, estimates and orders
+*Checkout → Document* switches between **Invoice / Estimate / Quotation**.
+Estimates and quotations never change stock and use their own number series
+(`VBA-EST-…`, `VBA-QTN-…`). Open one and choose **Convert to invoice**: pick the
+godown, optionally record a payment, and the new invoice is linked to the source.
+*More → Customer Orders* tracks requests; **Create invoice from order** fills the
+cart and marks the order *invoiced* after checkout.
 
-Drift uses code generation. The generated database and localization files are committed so a fresh clone analyzes immediately; regenerate them after changing a table or ARB file.
+### Credit and debit notes
+*More → Returns & Credit/Debit Notes → New → Credit / debit note*.
 
-```bash
-flutter pub get
-dart run build_runner build
-flutter analyze
-flutter test
-flutter run
-```
+| Type | Effect |
+| --- | --- |
+| Credit note (customer) | customer owes less |
+| Debit note (customer) | customer owes more |
+| Debit note (supplier) | you owe the supplier less |
+| Credit note (supplier) | you owe the supplier more |
 
-`flutter gen-l10n` runs automatically during `pub get`/build; the generated
-localizations land in `lib/l10n/generated/`.
+Notes never move stock. Balances, ledgers and the dashboard include them.
 
-### Verify
+### Godowns
+Sales and quotation conversion choose **Take stock from** (or *Automatic*, which
+uses the largest balances first and splits across godowns when needed).
+Purchases choose **Receive stock into**. Inventory can be filtered by location and
+adjustments are made per location. Cancelling an invoice returns stock to the
+exact location it left.
 
-```bash
-dart format --output=none --set-exit-if-changed lib test
-flutter analyze
-flutter test
-flutter build apk --release
-```
+### Reports and Excel
+*Reports → export menu*: one workbook with Sales, Purchases, Stock, Customer
+dues, Supplier payables, Expenses, GST summary and Payments (this month or all
+time), or single-purpose workbooks; sales CSV is still available.
+
+### Low-stock notifications
+*Settings → Low stock alerts*. Android 13+ asks for notification permission.
+
+### Salary slips
+*Salary → Slip* on any salary record: earnings, deductions, net pay, amount in
+words, payment history and signature lines; print or share as PDF.
+
+### Printing
+*Settings → Printer & paper*:
+
+* **Android print dialog** — A4 and any printer with an Android print service.
+* **Network** — enter the printer IP (port 9100).
+* **Bluetooth** — pair the printer in Android settings first, then choose it.
+* **USB** — connect with an OTG cable and grant permission.
+
+Direct printing renders the thermal bill as an image, so Tamil and the ₹ sign print
+correctly. *Auto print after finalizing* is optional. Use **Test print** to verify.
+
+### Backup and restore
+*Settings → Backup & restore*: create a `.bsbackup` file (compressed, integrity
+checked), restore from a file, or restore one of the last 7 automatic daily
+backups. Restoring first saves a safety copy, keeps this device's identity and
+never moves invoice number sequences backwards.
+
+### Team and devices
+*Settings → Team & devices* (owner/admin):
+
+* **Invites** — enter the person's email and role; share the 10-character code
+  (single use, 7 days).
+* **Members** — change role, permissions or disable an account.
+* **Devices** — enable/disable or remove a phone.
+
+A new member signs in with the invited email and uses *Settings → Join a shop*.
 
 ---
 
 ## 5. Firebase setup
 
-### 5.1 Web (already configured)
+1. Firebase console → Project settings → **Add app → Android**, package
+   `com.vijaybalaji.buildstock`.
+2. Enable **Email/Password** authentication and create Firestore (production mode).
+3. Copy the Android app ID (`1:...:android:...`) and either:
+   * pass it locally: `flutter build apk --dart-define=FIREBASE_ANDROID_APP_ID=<id>`, or
+   * in GitHub: **Settings → Secrets and variables → Actions → Variables →**
+     `FIREBASE_ANDROID_APP_ID`. CI passes it automatically.
+4. Deploy rules and indexes:
 
-The supplied web app configuration is embedded in
-`lib/core/firebase/firebase_runtime.dart`. It is safe to ship: Firebase web API
-keys identify the project, they are not service-account secrets.
+   ```bash
+   firebase deploy --only firestore:rules,firestore:indexes
+   ```
 
-### 5.2 Android (required for cloud sync on phones)
+Without an app ID the app runs in full offline mode and Sync Center explains what
+is missing. The web API key in `firebase_runtime.dart` identifies the project; it
+is not a secret.
 
-A web app ID cannot authenticate an Android client. Register an Android app in
-the same Firebase project:
+`firestore.rules` highlights: deny by default; every path scoped to an active
+membership; append-only stock movements, payments, salary payments and audit
+logs; finalized invoices immutable (an estimate may only be linked to the invoice
+it became); credit/debit notes must carry `stock_action == 'none'`; invites are
+single-use and email-bound; only the owner/admin may enable or disable devices or
+change members; image metadata is writable by its owner or an admin.
 
-1. Firebase console → Project settings → **Add app** → Android.
-2. Package name: `com.vijaybalaji.buildstock` (see `android/app/build.gradle.kts`).
-3. Download `google-services.json` if you prefer the Gradle path, **or** copy the
-   generated `mobilesdk_app_id` and pass it at build time:
+---
+
+## 6. Build, CI and release
+
+### GitHub Actions
+
+| Workflow | Trigger | Result |
+| --- | --- | --- |
+| `ci.yml` — *Build Android APK* | push, pull request, manual | `buildstock-apk` artifact; separate non-blocking *Analyze and test* job |
+| `release.yml` — *Release* | tag `v*` or manual | GitHub release with the APK |
+| `integration.yml` | manual | `integration_test` on an Android emulator |
+
+The workflows pin **Flutter 3.47.9** (the version in `.metadata`), JDK 17, Android
+SDK 36 and NDK 28.2.13676358, so builds are reproducible. The committed Drift and
+localization code is used as-is; no code generation runs in CI.
+
+Optional repository settings:
+
+* Variable `FIREBASE_ANDROID_APP_ID` — enables cloud sync in CI builds.
+* Secrets for a signed release (`release.yml`): `ANDROID_KEYSTORE_BASE64`,
+  `ANDROID_STORE_PASSWORD`, `ANDROID_KEY_PASSWORD`, `ANDROID_KEY_ALIAS`. Without
+  them the APK is debug-signed and still installs.
+
+### Local build
 
 ```bash
-flutter build apk \
-  --dart-define=FIREBASE_ANDROID_APP_ID=1:800582767727:android:xxxxxxxxxxxx
+flutter --version          # 3.47.9
+flutter pub get
+flutter build apk --release --no-tree-shake-icons \
+  --dart-define=FIREBASE_ANDROID_APP_ID=<id>
 ```
 
-Until this is supplied, the app starts in a fully functional **offline mode**;
-the setup and Sync Center screens explain the missing step. No fake credentials
-are invented.
-
-4. Enable **Email/Password** authentication.
-5. Create Firestore in production mode.
-6. Keep the supplied SHA-1/SHA-256 fingerprints if you later add Google sign-in.
-
-### 5.3 Deploy rules and indexes
-
-`firestore.rules` is the single required rules file and starts with
-`rules_version = '2';`.
+JDK 17–24 is required for Gradle 8.14. After changing a Drift table or ARB file:
 
 ```bash
-firebase deploy --only firestore:rules,firestore:indexes
+dart run build_runner build --delete-conflicting-outputs
 ```
-
-The rules:
-
-* deny everything not explicitly listed;
-* scope every document to `shops/{shopId}` and an active membership document;
-* make `stock_movements`, `payments`, `salary_payments` and `audit_logs`
-  append-only;
-* prevent financial edits to finalized invoices and payroll;
-* require a deterministic document ID and an idempotency key on payments;
-* allow the owner to bootstrap `shops/{uid}` + `users/{uid}` only for their own
-  UID, and staff to join through a single-use invite addressed to their email.
-
-### 5.4 First cloud shop
-
-Sign in on the first device with the owner account, save the business profile,
-then run **Sync Center → Sync now**. The app creates the shop document and the
-owner membership; subsequent devices sign in with invited accounts.
-
-### 5.5 Current Firebase plan constraint
-
-Firebase Cloud Storage requires Blaze. This app does **not** use Firebase
-Storage. Images are intended to live on an external host; Firestore stores only
-metadata and URLs. The upload pipeline is not wired in this build (see
-limitations), so invoice rendering uses the local file reference or text only.
 
 ---
 
-## 6. Invoice document
-
-The renderer reproduces the supplied paper format in English:
-
-* `ESTIMATE` / `BILL` heading, two contact numbers top-right;
-* centered `VIJAY BALAJI AGENCY`, dealer line, wholesale/retail line, address;
-* divider, date and bill number;
-* buyer name, phone, address, GSTIN;
-* bordered table: S.No, Description, Qty, Rate, Amount;
-* Subtotal, Discount, Taxable, CGST, SGST, IGST, Grand Total, Paid, Balance;
-* amount in words, payment mode, UPI QR, authorized signature, terms.
-
-Editable in **Settings → Business profile**: name, phones, description, address,
-logo/signature/stamp references, GSTIN, PAN, state code, UPI ID, bank details,
-invoice prefix. Seller fields are snapshotted onto each finalized invoice.
-
-Tamil text uses the embedded Hind Madurai font in PDFs. The PDF library does not
-perform full complex-script shaping; for Tamil thermal output the recommended
-fallback is bitmap rendering, which is not yet automated. On-screen Tamil
-rendering uses Flutter's text engine and shapes correctly.
-
----
-
-## 7. UPI QR (no gateway)
-
-`UpiQr.paymentUri` builds a standard UPI intent:
-
-```
-upi://pay?pa=<upiId>&pn=<payee>&am=<amount>&cu=INR&tn=<invoice>&tr=<invoiceId>
-```
-
-The QR is rendered locally with `qr_flutter` (screen) and `pdf` (print). Displaying
-or scanning the QR **never** marks an invoice paid. Staff must use **Record
-payment** and confirm receipt. There is no Razorpay/Stripe/Paytm integration.
-
-The invoice reference QR contains only
-`buildstock://invoice/<invoiceId>` — no customer name, phone or amount.
-
----
-
-## 8. Building Android
+## 7. Testing
 
 ```bash
-# JDK 17-24 must be active for Gradle 8.14
-export JAVA_HOME=/path/to/jdk-21   # PowerShell: $env:JAVA_HOME = 'D:\jdk21'
-
-flutter build apk --release \
-  --dart-define=FIREBASE_ANDROID_APP_ID=1:800582767727:android:xxxx
+flutter test                      # unit and widget tests
+flutter test integration_test     # database-backed flows (device or emulator)
 ```
 
-Release signing: create `android/key.properties` (git-ignored):
-
-```properties
-storePassword=...
-keyPassword=...
-keyAlias=upload
-storeFile=/absolute/path/upload-keystore.jks
-```
-
-`android/app/build.gradle.kts` falls back to debug signing when the file is
-absent, so CI can build an unsigned/debug artifact; a production release must
-provide the keystore.
-
-Required Android permissions are declared in `AndroidManifest.xml`: internet,
-camera, images, notifications, Bluetooth (thermal printers).
+Unit tests cover money, quantities, GST arithmetic, invoice numbers, permissions,
+the A4 invoice, invoice QR payloads, ESC/POS encoding and print settings, image-host
+responses, backup validation, credit/debit note types, order lines, search
+escaping, date conversion and salary-slip totals. Integration tests run search,
+orders, credit/debit notes and backup/restore against an in-memory SQLite
+database.
 
 ---
 
-## 9. Tests
+## 8. Project conventions
 
-```bash
-flutter test
-```
-
-Covered: money parsing/formatting/words, quantity precision, GST/discount/rounding
-arithmetic, invoice numbering and device codes, role permissions, and the A4
-invoice widget for both bill and estimate.
-
-Not yet covered by automated tests: database transactions, sync engine against a
-fake backend, PDF byte generation, and end-to-end multi-device flows. The
-`test/` structure is ready for them; CI runs everything present.
+* Parse money with `Money.tryParseRupees` and store `int` paise; quantities with
+  `Quantity.tryParseMilli`.
+* New tables need a schema bump, a migration case and regenerated Drift code.
+* New business writes call `Outbox.enqueue` in the same transaction.
+* New Firestore collections need rules, indexes and a `SyncCollections` entry.
+* Never commit `key.properties`, keystores, `google-services.json` or service
+  account JSON.
 
 ---
 
-## 10. Project conventions
+## 9. Limitations and notes
 
-* All new monetary UI input is parsed with `Money.tryParseRupees` and stored as
-  `int` paise.
-* All quantities use `Quantity.tryParseMilli`.
-* New tables require a schema version bump and a new migration case.
-* New business writes must call `Outbox.enqueue` in the same transaction.
-* New Firestore collections require rules, index definitions and a `SyncCollections`
-  entry.
-* Never put a secret in `lib/` or commit `key.properties`, `google-services.json`
-  or service-account JSON.
-
----
-
-## 11. Known limitations / next steps
-
-1. **Android Firebase app ID** must be registered; until then cloud sync is
-   unavailable and offline mode is used.
-2. **Image hosting upload** is not wired. `image_metadata` rows, local paths and
-   checksums exist; add an ImgBB/S3/Cloudinary adapter and a queue worker.
-3. Stock transfer, return/credit-note and quotation screens exist in the data
-   layer but not the UI.
-4. PDF Tamil shaping uses the font's glyphs without HarfBuzz; verify with the
-   printer/business before relying on Tamil thermal bills.
-5. Automated integration tests for sync/multi-device conflicts are pending.
-6. Firestore rules should be exercised in the Firebase emulator before
-   production deployment.
+* Cloud sync needs the Android Firebase app ID (section 5).
+* Image upload needs an ImgBB key or Cloudinary preset; photos work locally
+  without one.
+* Direct Bluetooth/USB printing sends ESC/POS raster images; very old printers
+  without raster support should use the print dialog. A4 always uses the dialog.
+* Bluetooth printers must be paired in Android settings first.
+* Backups hold this device's local data; copy them off the phone for safety.
+  Cloud sync is a separate mechanism that shares data between devices.
+* Run the Firestore rules in the Firebase emulator before production deployment.
 
 ---
-
-## 12. License and ownership
 
 Built for Vijay Balaji Agency. Source delivered to the business; no third-party
 sample data is included.

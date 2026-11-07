@@ -247,8 +247,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                           decoration: const InputDecoration(
                             labelText: 'UPI ID (for payment QR)',
                             hintText: 'businessname@bank',
-                            helperText:
-                                'Used only to generate a UPI QR. No payment gateway is involved.',
+                            helperText: 'Used only to generate a UPI QR. No payment gateway is involved.',
                           ),
                         ),
                       ],

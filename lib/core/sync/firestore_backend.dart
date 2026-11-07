@@ -80,9 +80,9 @@ class FirestoreSyncBackend implements SyncBackend {
     String? cursor,
     int limit = 200,
   }) async {
-    Query<Map<String, dynamic>> query = _collection(
-      collection,
-    ).orderBy('updated_at').limit(limit);
+    Query<Map<String, dynamic>> query = _collection(collection)
+        .orderBy('updated_at')
+        .limit(limit);
     if (cursor != null && cursor.isNotEmpty) {
       query = query.where('updated_at', isGreaterThan: cursor);
     }
@@ -156,19 +156,31 @@ class FirestoreSyncBackend implements SyncBackend {
     required String deviceCode,
     required String platform,
     required String appVersion,
+    String? userId,
+    String? userName,
   }) async {
     await ifSupported(() async {
-      await _collection('devices').doc(deviceId).set({
+      final reference = _collection('devices').doc(deviceId);
+      final existing = await reference.get();
+      final now = DateTime.now().toUtc().toIso8601String();
+      final data = <String, Object?>{
         'id': deviceId,
         'shop_id': shopId,
         'name': deviceName,
         'device_code': deviceCode,
         'platform': platform,
         'app_version': appVersion,
-        'registered_at': DateTime.now().toUtc().toIso8601String(),
-        'last_seen_at': DateTime.now().toUtc().toIso8601String(),
-        'active': true,
-      }, SetOptions(merge: true));
+        'last_seen_at': now,
+        'user_id': userId ?? '',
+        'user_name': userName ?? '',
+      };
+      // A new device starts active. An existing device keeps whatever the
+      // owner chose, so a disabled device can not re-enable itself.
+      if (!existing.exists) {
+        data['registered_at'] = now;
+        data['active'] = true;
+      }
+      await reference.set(data, SetOptions(merge: true));
     });
   }
 

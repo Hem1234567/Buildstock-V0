@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:buildstock/app/theme/app_theme.dart';
 import 'package:buildstock/core/database/app_database.dart';
 import 'package:buildstock/core/utils/money.dart';
+import 'package:buildstock/core/scanner/barcode_scanner_screen.dart';
 import 'package:buildstock/core/utils/quantity.dart';
 import 'package:buildstock/core/widgets/async_view.dart';
 import 'package:buildstock/core/widgets/section_card.dart';
@@ -28,6 +29,20 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
     super.dispose();
   }
 
+  Future<void> _scan() async {
+    await BarcodeScannerScreen.openContinuous(
+      context,
+      onScan: (code) async {
+        final product = await ref
+            .read(catalogRepositoryProvider)
+            .productByCode(code);
+        if (product == null) return 'No product found for $code';
+        ref.read(cartProvider.notifier).addScanned(product);
+        return 'Added ${product.name}';
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final products = ref.watch(productsStreamProvider(_query));
@@ -36,6 +51,11 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
       appBar: AppBar(
         title: const Text('Sales'),
         actions: [
+          IconButton(
+            tooltip: 'Scan products',
+            onPressed: _scan,
+            icon: const Icon(Icons.qr_code_scanner),
+          ),
           IconButton(
             tooltip: 'Invoice history',
             onPressed: () => context.push('/invoices'),
@@ -244,9 +264,8 @@ class _ProductGrid extends ConsumerWidget {
                   const Spacer(),
                   Text(
                     Money.format(price),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                 ],
               ),
